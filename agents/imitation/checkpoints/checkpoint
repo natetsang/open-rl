@@ -1,0 +1,2 @@
+model_checkpoint_path: "expert_model_weights"
+all_model_checkpoint_paths: "expert_model_weights"
