@@ -1,43 +1,31 @@
-# Reinforcement Learning from scratch!
-## What's in this repo?
-The `open-rl` code repository contains minimalistic implementations of a wide collection of RL algorithms. 
-The goal of this repo is to make RL more approachable and easier to learn. As such, code is this repo is optimized for
-readability! While simple implementations already exist for Q-networks and vanilla policy gradients, it's difficult
-to find easy-to-follow implementations of other algorithms. For many of the algorithms implemented here,
-no simple implementations appear to exist whatsoever (at the time of this writing). Interestingly, it's not just
-state-of-the-art algorithms that haven't been re-implemented simply. It's also hard to find easy-to-follow 
-implementations of foundational algorithms like multi-armed bandits. It's for these reasons why `open-rl` was created!
+![Open-RL Logo](logo.png)
 
-## Installation
-- Make sure you have Python 3.7 or higher installed
-- Clone the repo
-```
-git clone --depth 1 https://github.com/natetsang/open-rl
-cd open-rl  # Navigate to root folder
-```
-- Create a virtual environment (Windows 10)
-```
-pip install virtualenv # If not already installed
-virtualenv venv  # Create virtual environment called 'venv' in the root of the project
-venv\Scripts\activate  # Activate environment
-```
-- Download requirements
-```
-pip install -r requirements.txt
-```
+__Open RL__ is code repository that contains minimalistic implementations of a wide collection of reinforcement
+learning algorithms. The purpose of this repo is to make RL more approachable and easier to learn. 
+As such, code in this repo is optimized for readability and consistency between algorithms. 
+
+Compared to machine learning, RL is still rather niche. As such, finding resources for learning
+RL is a bit more difficult. While implementations broadly exist for two algorithms, Q-networks and vanilla policy gradients, 
+it's much more difficult to find easy-to-follow implementations of others. 
+For many of the algorithms implemented here, no simple implementations appear to exist whatsoever. 
+Interestingly, it's not just state-of-the-art algorithms that haven't been re-implemented in an easy-to-follow way. 
+It's also hard to find clear implementations of foundational algorithms like multi-armed bandits. 
+It's for these reasons why `open-rl` was created! Happy learning!
+
 ## Algorithms
-This repo implements many algorithms, which include the following. 
+In this repo you will find implementations for the following algorithms.  
 
 ### Model free learning
 #### Policy-based methods
 - [x] REINFORCE
+- [x] REINFORCE w/ baseline
 - [x] VPG
 
 #### Value-based methods
 - [x] DQN
 - [x] Double DQN
 - [x] Dueling DQN 
-- [x] DRQN
+- [x] DRQN (for POMDPs)
 
 #### Actor-critic methods
 - [x] A2C
@@ -60,14 +48,14 @@ This repo implements many algorithms, which include the following.
 - [ ] Linear Thompson Sampling 
 - [x] Neural-network approach
 
-### Model-based methods
+### Model-based learning
 - [x] Dyna-Q
 - [x] Deep Dyna-Q
 - [x] Monte-Carlo Tree Search (MCTS)
 - [x] MB + model predictive control
 - [x] Model-based Policy Optimization (MBPO)
 
-### Offline (batch) methods
+### Offline (batch) learning
 - [x] Conservative Q-learning (CQL)
 - [x] MOReL
 - [x] Model-based Offline Policy Optimization (MOPO)
@@ -76,8 +64,33 @@ This repo implements many algorithms, which include the following.
 - [x] Behavioral Cloning
 - [x] Imitation Learning
 
+## Installation
+- Make sure you have Python 3.7 or higher installed
+- Clone the repo
+```
+# Clone repo from github
+git clone --depth 1 https://github.com/natetsang/open-rl
+
+# Navigate to root folder
+cd open-rl
+```
+- Create a virtual environment (Windows 10). Showing instructions from `virtualenv` but there are other options too!
+```
+# If not already installed, you might need to run this next line
+pip install virtualenv 
+
+# Create virtual environment called 'venv' in the root of the project
+virtualenv venv
+
+# Activate environment
+venv\Scripts\activate
+```
+- Download requirements
+```
+pip install -r requirements.txt
+```
+
 ## Contributing
-`open-rl` is currently still under development and updates  will be made periodically. 
 If you're interested in contributing to `open-rl`, please fork the repo and make a pull request. Any support
 is much appreciated!
 
@@ -85,14 +98,17 @@ is much appreciated!
 If you use this code, please cite it as follows:
 ```
 @misc{Open-RL,
-  author = {Nate Tsang},
-  title = {Open-RL: An open-source repository of minimalistic implementations of reinforcement learning algorithms},
-  year = {2021},
-  url = {https://github.com/natetsang/open-rl},
-  howpublished = {\url{https://github.com/natetsang/open-rl}},
+author = {Tsang, Nate},
+title = {{Open-RL: Minimalistic implementations of reinforcment learning algorithms}},
+url = {https://github.com/natetsang/open-rl},
+year = {2021}
 }
 ```
 
 ## Acknowledgements
-This repo would not be possible without the following (tremendous) resources.
+This repo would not be possible without the following (tremendous) resources, which were relied upon heavily when
+learning RL. I highly recommend going through these to learn more.
 * [CS285](http://rail.eecs.berkeley.edu/deeprlcourse/) @ UC Berkeley - taught by Sergey Levine
+* [Grokking Deep RL book](https://www.manning.com/books/grokking-deep-reinforcement-learning) by [@mimoralea](https://github.com/mimoralea/gdrl)
+* [more to come]
+
