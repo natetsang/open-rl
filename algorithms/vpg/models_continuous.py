@@ -21,9 +21,9 @@ def actor_fc_continuous_network(num_inputs: int,
     return model
 
 
-def critic_fc_continuous_network(num_inputs: int,
-                                 num_hidden_layers: int,
-                                 hidden_size: int) -> tf.keras.Model:
+def critic_fc_network(num_inputs: int,
+                      num_hidden_layers: int,
+                      hidden_size: int) -> tf.keras.Model:
     inputs = layers.Input(shape=(num_inputs,), name="input_layer")
 
     # Create shared hidden layers

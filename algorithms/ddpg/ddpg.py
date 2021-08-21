@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
+from models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_network
 from utils import ReplayBuffer, OUActionNoise, plot_training_results
 tf.keras.backend.set_floatx('float32')
 
@@ -188,7 +188,7 @@ if __name__ == '__main__':
     agent = DDPGAgent(environment=env,
                       actor_model_fn=ddpg_actor_fc_continuous_network,
                       actor_optimizer=actor_opt,
-                      critic_model_fn=ddpg_critic_fc_continuous_network,
+                      critic_model_fn=ddpg_critic_fc_network,
                       critic_optimizer=critic_opt,
                       replay_buffer=buffer,
                       model_kwargs=dict(num_inputs=_num_inputs,

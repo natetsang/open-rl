@@ -29,9 +29,9 @@ def actor_fc_discrete_network(num_inputs: int,
     return model
 
 
-def critic_fc_discrete_network(num_inputs: int,
-                               num_hidden_layers: int,
-                               hidden_size: int) -> tf.keras.Model:
+def critic_fc_network(num_inputs: int,
+                      num_hidden_layers: int,
+                      hidden_size: int) -> tf.keras.Model:
     """
     Creates critic model. This model is fully connected, takes in the state as input
     and outputs the value (i.e. critic).

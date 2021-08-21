@@ -45,9 +45,9 @@ def ddpg_actor_fc_continuous_network(num_inputs: int,
     return model
 
 
-def ddpg_critic_fc_continuous_network(num_inputs: int,
-                                      num_actions: int,
-                                      l2_reg_factor: float = 0.01) -> tf.keras.Model:
+def ddpg_critic_fc_network(num_inputs: int,
+                           num_actions: int,
+                           l2_reg_factor: float = 0.01) -> tf.keras.Model:
     """
     Creates DDPG critic model using the exact model architecture as described in
     the original paper: https://arxiv.org/abs/1509.02971

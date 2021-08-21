@@ -4,7 +4,7 @@ This is implemented correctly but doesn't learn. We need a better algo
 for continuous action spaces!
 """
 from typing import Union, List, Callable, Tuple
-from models_continuous import actor_fc_continuous_network, critic_fc_continuous_network
+from models_continuous import actor_fc_continuous_network, critic_fc_network
 from utils import plot_training_results
 
 import gym
@@ -152,7 +152,7 @@ if __name__ == '__main__':
 
     agent = VPGAgent(environment=env,
                      actor_model_fn=actor_fc_continuous_network,
-                     critic_model_fn=critic_fc_continuous_network,
+                     critic_model_fn=critic_fc_network,
                      actor_optimizer=actor_opt,
                      critic_optimizer=critic_opt,
                      model_kwargs=dict(num_inputs=_num_inputs,

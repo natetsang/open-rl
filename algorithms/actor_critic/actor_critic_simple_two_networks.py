@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from models import actor_fc_discrete_network, critic_fc_discrete_network
+from models import actor_fc_discrete_network, critic_fc_network
 from utils import plot_training_results
 
 
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     agent = ActorCriticAgent(environment=env,
                              actor_model_fn=actor_fc_discrete_network,
                              actor_optimizer=actor_opt,
-                             critic_model_fn=critic_fc_discrete_network,
+                             critic_model_fn=critic_fc_network,
                              critic_optimizer=critic_opt,
                              model_kwargs=dict(num_inputs=_num_inputs,
                                                num_hidden_layers=2,

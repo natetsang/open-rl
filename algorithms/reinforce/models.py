@@ -3,9 +3,9 @@ from tensorflow.keras import layers
 
 
 def policy_gradient_fc_discrete_network(num_inputs: int,
-                                     num_hidden_layers: int,
-                                     hidden_size: int,
-                                     num_actions: int) -> tf.keras.Model:
+                                        num_hidden_layers: int,
+                                        hidden_size: int,
+                                        num_actions: int) -> tf.keras.Model:
     """
     Creates actor-critic model. This model is fully connected, takes in the state as input
     and outputs both the probability of taking each discrete action (i.e. actor) and the value (i.e. critic).

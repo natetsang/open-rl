@@ -9,7 +9,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from typing import List, Callable, Tuple, Generator
 from multiprocessing_env import SubprocVecEnv
-from models import actor_fc_continuous_network, critic_fc_continuous_network
+from models import actor_fc_continuous_network, critic_fc_network
 from utils import plot_training_results
 tfd = tfp.distributions
 
@@ -290,7 +290,7 @@ if __name__ == '__main__':
                      eval_env=eval_env,
                      actor_model_fn=actor_fc_continuous_network,
                      actor_optimizer=actor_opt,
-                     critic_model_fn=critic_fc_continuous_network,
+                     critic_model_fn=critic_fc_network,
                      critic_optimizer=critic_opt,
                      model_kwargs=dict(num_inputs=_num_inputs,
                                        num_hidden_layers=2,
