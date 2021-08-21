@@ -1,4 +1,4 @@
-![Open-RL Logo](logo.png)
+![Open-RL Logo](https://github.com/natetsang/open-rl/blob/main/logo.PNG)
 
 __Open RL__ is code repository that contains minimalistic implementations of a wide collection of reinforcement
 learning algorithms. The purpose of this repo is to make RL more approachable and easier to learn. 
