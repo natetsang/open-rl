@@ -1,5 +1,9 @@
 ![Open-RL Logo](https://github.com/natetsang/open-rl/blob/main/logo.PNG)
 
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/natetsang/open-rl?style=flat-square)
+![GitHub commits since latest release (by date)](https://img.shields.io/github/commits-since/natetsang/open-rl/latest/main?color=yellowgreen&style=flat-square)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?color=lightgrey&style=flat-square)](http://makeapullrequest.com)
+
 __Open RL__ is code repository that contains minimalistic implementations of a wide collection of reinforcement
 learning algorithms. The purpose of this repo is to make RL more approachable and easier to learn. 
 As such, code in this repo is optimized for readability and consistency between algorithms. 
