@@ -3,14 +3,11 @@ DQN that can either use the vanilla DQN network or a dueling DQN network
 """
 
 import gym
-import time
-import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from models import dqn_fc_discrete_network
-from utils import ReplayBuffer, plot_training_results
-tf.keras.backend.set_floatx('float32')
+from utils import ReplayBuffer
+
 
 # Set up
 GAMMA = 0.99
@@ -183,98 +180,3 @@ class DQNAgent:
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
         return total_reward
-
-
-def main() -> None:
-    # Create environment
-    env = gym.make(args.env)
-
-    # Set seeds
-    if args.seed:
-        np.random.seed(args.seed)
-        tf.random.set_seed(args.seed)
-        env.seed(args.seed)
-
-    # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
-    _num_actions = env.action_space.n
-
-    # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
-
-    # Select network architecture
-    model_func = dqn_fc_discrete_network
-
-    # Instantiate optimizer
-    opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-
-    # Create agent
-    agent = DQNAgent(environment=env,
-                     model_fn=model_func,
-                     optimizer=opt,
-                     replay_buffer=buffer,
-                     model_kwargs=dict(num_inputs=_num_inputs,
-                                       num_actions=_num_actions,
-                                       num_hidden_layers=2,
-                                       hidden_size=256),
-                     train_kwargs=dict(target_update_freq=20,
-                                       use_polyak=False),
-                     save_dir=args.model_checkpoint_dir)
-
-    # Run training
-    best_mean_rewards = -1e8
-    running_reward = 0
-    ep_rewards_history = []
-    ep_steps_history = []
-    ep_running_rewards_history = []
-    ep_wallclock_history = []
-    start = time.time()
-    for e in range(args.epochs):
-        ep_rew, ep_steps = agent.train_episode()
-
-        ep_wallclock_history.append(time.time() - start)
-
-        # Track progress
-        if e == 0:
-            running_reward = ep_rew
-        else:
-            running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
-
-        ep_rewards_history.append(ep_rew)
-        ep_running_rewards_history.append(running_reward)
-        ep_steps_history.append(ep_steps)
-
-        if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
-
-        latest_mean_rewards = np.mean(ep_rewards_history[-10:])
-        if np.mean(latest_mean_rewards > best_mean_rewards):
-            best_mean_rewards = latest_mean_rewards
-            agent.save_models()
-
-        if running_reward > 195:
-            print("Solved at episode {}!".format(e))
-            break
-
-        # Now that we've completed training, let's plot the results
-    print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
-
-    # Plot summary of results
-    plot_training_results(rewards_history=ep_rewards_history,
-                          running_rewards_history=ep_running_rewards_history,
-                          steps_history=ep_steps_history,
-                          wallclock_history=ep_wallclock_history,
-                          save_dir="./results.png")
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--epochs", type=int, default=600)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--network_architecture", type=str, default="dqn")
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
-    main()
