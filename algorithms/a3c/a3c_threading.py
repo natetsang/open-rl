@@ -76,6 +76,7 @@ class ActorCriticWorker(threading.Thread):
     train_steps_history: List = []
     train_running_rewards_history: List = []
     train_wallclock_history: List = []
+    train_wallclock_start_time: float
 
     def __init__(self,
                  environment: gym.Env,
@@ -138,7 +139,8 @@ class ActorCriticWorker(threading.Thread):
             self.result_queue.put(ActorCriticWorker.global_running_reward)  # TODO >> I don't think I need this
 
             if ActorCriticWorker.global_current_epoch % TEST_FREQ == 0:
-                ActorCriticWorker.train_wallclock_history.append(time.time() - start)
+                ActorCriticWorker.train_wallclock_history.append(
+                    time.time() - ActorCriticWorker.train_wallclock_start_time)
                 ActorCriticWorker.train_rewards_history.append(ep_rewards)
                 ActorCriticWorker.train_running_rewards_history.append(ActorCriticWorker.global_running_reward)
                 ActorCriticWorker.train_steps_history.append(ep_steps)
@@ -235,22 +237,12 @@ class ActorCriticWorker(threading.Thread):
             cur_step += 1
             action_prob, _ = self.local_model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
-            state, reward, done, _ = env.step(action)
+            state, reward, done, _ = self.env.step(action)
             total_reward += reward
         return total_reward, cur_step
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--num_workers", type=int, default=mp.cpu_count())
-    parser.add_argument("--epochs", type=int, default=800)
-    parser.add_argument("--use_gae", type=bool, default=True)
-    parser.add_argument("--n_steps", type=int, default=10)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create queue
     res_queue = Queue()
 
@@ -300,7 +292,7 @@ if __name__ == '__main__':
     ]
 
     # Start workers
-    start = time.time()
+    ActorCriticWorker.train_wallclock_start_time = time.time()
     for i, w in enumerate(workers):
         print(f"Starting worker {i}!")
         w.start()
@@ -330,3 +322,17 @@ if __name__ == '__main__':
     # plt.ylabel('Moving average ep reward')
     # plt.xlabel('Step')
     # plt.show()
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--num_workers", type=int, default=mp.cpu_count())
+    parser.add_argument("--epochs", type=int, default=800)
+    parser.add_argument("--use_gae", type=bool, default=True)
+    parser.add_argument("--n_steps", type=int, default=10)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

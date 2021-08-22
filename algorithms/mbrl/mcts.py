@@ -226,6 +226,17 @@ def get_available_actions(environment: gym.Env, state: np.ndarray) -> List:
     return [_ for _ in range(environment.action_space.n)]
 
 
+def main() -> None:
+    # Run MCTS planning and run one trajectory
+    start = time.time()
+    ep_rew, ep_steps = run_episode(env=env, simulation_steps=args.mcts_simulation_steps)
+    elapsed_time = round(time.time() - start, 2)
+    print("MCTS Simulation steps: ", args.mcts_simulation_steps)
+    print("Elapsed time (sec): ", elapsed_time)
+    print("Episode rewards: ", sum(ep_rew))
+    print("Episode num steps: ", ep_steps)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="CartPole-v1")
@@ -242,11 +253,4 @@ if __name__ == '__main__':
         np.random.seed(args.seed)
         env.seed(args.seed)
 
-    # Run MCTS planning and run one trajectory
-    start = time.time()
-    ep_rew, ep_steps = run_episode(env=env, simulation_steps=args.mcts_simulation_steps)
-    elapsed_time = round(time.time() - start, 2)
-    print("MCTS Simulation steps: ", args.mcts_simulation_steps)
-    print("Elapsed time (sec): ", elapsed_time)
-    print("Episode rewards: ", sum(ep_rew))
-    print("Episode num steps: ", ep_steps)
+    main()
