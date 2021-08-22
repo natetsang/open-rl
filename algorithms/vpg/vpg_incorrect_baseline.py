@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from models import policy_gradient_fc_discrete_network
+from models import actor_critic_fc_discrete_network
 from utils import plot_training_results
 
 
@@ -152,7 +152,7 @@ def main() -> None:
     # Create agent
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     agent = REINFORCEAgent(environment=env,
-                           model_fn=policy_gradient_fc_discrete_network,
+                           model_fn=actor_critic_fc_discrete_network,
                            optimizer=opt,
                            model_kwargs=dict(num_inputs=_num_inputs,
                                              num_hidden_layers=2,
@@ -186,7 +186,7 @@ def main() -> None:
             print(template.format(running_reward, ep_rew, e))
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
-        if np.mean(latest_mean_rewards > best_mean_rewards):
+        if latest_mean_rewards > best_mean_rewards:
             best_mean_rewards = latest_mean_rewards
             agent.save_model()
 

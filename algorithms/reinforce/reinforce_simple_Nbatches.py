@@ -187,7 +187,7 @@ def main() -> None:
             print(template.format(running_reward, ep_rew, e))
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
-        if np.mean(latest_mean_rewards > best_mean_rewards):
+        if latest_mean_rewards > best_mean_rewards:
             best_mean_rewards = latest_mean_rewards
             agent.save_model()
 
