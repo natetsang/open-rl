@@ -244,31 +244,7 @@ class MOPOAgent:
         self.cur_episode += 1
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
-
-    parser.add_argument("--online_epochs", type=int, default=10)  # number of epochs to run online agent
-    parser.add_argument("--offline_epochs", type=int, default=20)  # number of epochs to run MOPO agent
-    parser.add_argument("--evaluation_epochs", type=int, default=5)  # number of epochs to evaluate MOPO agent
-
-    parser.add_argument("--policy_train_batch_size", type=int, default=256)  # Batch size for SAC policy training
-    parser.add_argument("--dynamics_train_batch_size", type=int, default=512)  # Batch size per dynamics model
-
-    parser.add_argument("--ensemble_size", type=int, default=5)  # number of models in the ensemble
-    parser.add_argument("--rollout_length", type=int, default=1)  # number of steps to take in branched rollouts
-
-    parser.add_argument("--num_model_rollouts_per_epoch", type=int, default=1000)
-    parser.add_argument("--num_policy_updates_per_epoch", type=int, default=100)
-
-    parser.add_argument("--reward_penalty_coef", type=float, default=10)  # Penalty coefficient for rewards
-    parser.add_argument("--penalty_learned_var", type=bool, default=True)  # Penalty type
-    parser.add_argument("--num_dynamics_updates", type=int, default=200)
-    parser.add_argument("--replay_buffer_env_size", type=int, default=10000)
-
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
     offline_env = gym.make(args.env)
@@ -398,3 +374,31 @@ if __name__ == '__main__':
     print("Evaluation results: ")
     print("MOPO mean evaluation reward: ", np.mean(mopo_evaluation_rewards))
     print("Trained SAC mean evaluation reward: ", np.mean(sac_evaluation_rewards))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
+
+    parser.add_argument("--online_epochs", type=int, default=10)  # number of epochs to run online agent
+    parser.add_argument("--offline_epochs", type=int, default=20)  # number of epochs to run MOPO agent
+    parser.add_argument("--evaluation_epochs", type=int, default=5)  # number of epochs to evaluate MOPO agent
+
+    parser.add_argument("--policy_train_batch_size", type=int, default=256)  # Batch size for SAC policy training
+    parser.add_argument("--dynamics_train_batch_size", type=int, default=512)  # Batch size per dynamics model
+
+    parser.add_argument("--ensemble_size", type=int, default=5)  # number of models in the ensemble
+    parser.add_argument("--rollout_length", type=int, default=1)  # number of steps to take in branched rollouts
+
+    parser.add_argument("--num_model_rollouts_per_epoch", type=int, default=1000)
+    parser.add_argument("--num_policy_updates_per_epoch", type=int, default=100)
+
+    parser.add_argument("--reward_penalty_coef", type=float, default=10)  # Penalty coefficient for rewards
+    parser.add_argument("--penalty_learned_var", type=bool, default=True)  # Penalty type
+    parser.add_argument("--num_dynamics_updates", type=int, default=200)
+    parser.add_argument("--replay_buffer_env_size", type=int, default=10000)
+
+    args = parser.parse_args()
+
+    main()

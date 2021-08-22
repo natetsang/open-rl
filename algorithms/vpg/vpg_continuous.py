@@ -71,7 +71,7 @@ class VPGAgent:
 
     def train_episode(self) -> Tuple[Union[float, int], int]:
         ep_rewards = 0
-        state = env.reset()
+        state = self.env.reset()
         done = False
         cur_step = 0
         reward_trajectory, state_trajectory, action_logprob_trajectory = [], [], []
@@ -92,7 +92,7 @@ class VPGAgent:
                 action = tf.clip_by_value(dist.sample(), clip_value_min=-2, clip_value_max=2.)
                 log_prob = dist.log_prob(action)
 
-                state, reward, done, _ = env.step(action[0])
+                state, reward, done, _ = self.env.step(action[0])
 
                 # Some bookkeeping
                 ep_rewards += reward
@@ -125,14 +125,7 @@ class VPGAgent:
         return ep_rewards, cur_step
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
-    parser.add_argument("--epochs", type=int, default=400)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -196,3 +189,14 @@ if __name__ == '__main__':
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="Pendulum-v0")
+    parser.add_argument("--epochs", type=int, default=400)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

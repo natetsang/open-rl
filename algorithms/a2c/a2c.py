@@ -190,17 +190,7 @@ class ActorCriticAgent:
         return total_reward, cur_step
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--num_envs", type=int, default=8)
-    parser.add_argument("--epochs", type=int, default=110)
-    parser.add_argument("--use_gae", type=bool, default=True)
-    parser.add_argument("--n_steps", type=int, default=5)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Make single env for testing model performance
     eval_env = gym.make(args.env)
 
@@ -277,3 +267,17 @@ if __name__ == '__main__':
                           wallclock_history=ep_wallclock_history,
                           test_freq=TEST_FREQ,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--num_envs", type=int, default=8)
+    parser.add_argument("--epochs", type=int, default=110)
+    parser.add_argument("--use_gae", type=bool, default=True)
+    parser.add_argument("--n_steps", type=int, default=5)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

@@ -305,25 +305,7 @@ class MBAgent:
         return mean_traj_rewards, total_num_steps, losses
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
-    parser.add_argument("--epochs", type=int, default=20)
-
-    parser.add_argument("--ensemble_size", type=int, default=3)  # number of models in the ensemble
-    parser.add_argument("--horizon", type=int, default=10)  # number of steps to take in random-shooting for MPC
-    parser.add_argument("--num_sequences", type=int, default=1000)  # number of sequences to sample in MPC
-    parser.add_argument('--max_ep_len', type=int, default=100)  # max trajectory length
-
-    parser.add_argument('--batch_size_initial', type=int, default=5000)  # num steps/transitions to sample for itr 0
-    parser.add_argument('--batch_size', '-b', type=int, default=1000)  # num steps/transitions to sample for itr 1+
-
-    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=20)  # number of grad updates per iter
-    parser.add_argument('--train_batch_size', '-tb', type=int, default=512)  # training batch size per model
-    parser.add_argument('--eval_batch_size', '-eb', type=int, default=400)  # steps collected per eval iteration
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -401,3 +383,25 @@ if __name__ == '__main__':
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
+    parser.add_argument("--epochs", type=int, default=20)
+
+    parser.add_argument("--ensemble_size", type=int, default=3)  # number of models in the ensemble
+    parser.add_argument("--horizon", type=int, default=10)  # number of steps to take in random-shooting for MPC
+    parser.add_argument("--num_sequences", type=int, default=1000)  # number of sequences to sample in MPC
+    parser.add_argument('--max_ep_len', type=int, default=100)  # max trajectory length
+
+    parser.add_argument('--batch_size_initial', type=int, default=5000)  # num steps/transitions to sample for itr 0
+    parser.add_argument('--batch_size', '-b', type=int, default=1000)  # num steps/transitions to sample for itr 1+
+
+    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=20)  # number of grad updates per iter
+    parser.add_argument('--train_batch_size', '-tb', type=int, default=512)  # training batch size per model
+    parser.add_argument('--eval_batch_size', '-eb', type=int, default=400)  # steps collected per eval iteration
+    args = parser.parse_args()
+
+    main()

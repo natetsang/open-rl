@@ -76,7 +76,7 @@ class VPGAgent:
             ep_loss = []
             cur_step = 0
             for i in range(self.batch_size):
-                state = env.reset()  # initialize state
+                state = self.env.reset()  # initialize state
                 done = False
                 reward_trajectory, state_trajectory, action_prob_trajectory = [], [], []
                 value_trajectory = []
@@ -91,7 +91,7 @@ class VPGAgent:
                     action_prob, values = self.model(state)
                     action = np.random.choice(self.num_actions, p=np.squeeze(action_prob))
 
-                    state, reward, done, _ = env.step(action)
+                    state, reward, done, _ = self.env.step(action)
 
                     # Some bookkeeping
                     ep_rewards[i] += reward
@@ -135,20 +135,12 @@ class VPGAgent:
                 self.env.render()
             action_prob, _ = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
-            state, reward, done, _ = env.step(action)
+            state, reward, done, _ = self.env.step(action)
             total_reward += reward
         return total_reward
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--epochs", type=int, default=400)
-    parser.add_argument("--batch_size", type=int, default=5)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -216,3 +208,15 @@ if __name__ == '__main__':
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--epochs", type=int, default=400)
+    parser.add_argument("--batch_size", type=int, default=5)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

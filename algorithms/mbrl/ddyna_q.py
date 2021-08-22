@@ -388,17 +388,7 @@ class DDynaQAgent:
         return trajectory_rewards, trajectory_steps
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v1")
-    parser.add_argument("--epochs", type=int, default=400)
-    parser.add_argument("--seed", type=int, default=10)
-    parser.add_argument("--network_architecture", type=str, default="dqn")
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    parser.add_argument("--num_planning_steps_per_iter", type=int, default=1)  # DDyna-Q is equivalent to DQN at K=0
-    parser.add_argument("--planning_batch_size", type=int, default=16)  # Batch size for planning q-learning update
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -495,3 +485,17 @@ if __name__ == '__main__':
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v1")
+    parser.add_argument("--epochs", type=int, default=400)
+    parser.add_argument("--seed", type=int, default=10)
+    parser.add_argument("--network_architecture", type=str, default="dqn")
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    parser.add_argument("--num_planning_steps_per_iter", type=int, default=1)  # DDyna-Q is equivalent to DQN at K=0
+    parser.add_argument("--planning_batch_size", type=int, default=16)  # Batch size for planning q-learning update
+    args = parser.parse_args()
+
+    main()

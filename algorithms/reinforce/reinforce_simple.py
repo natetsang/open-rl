@@ -1,5 +1,6 @@
 """
-REINFORCE - very simple
+Algorithm: REINFORCE
+Notes: This is an extremely simple implementation of REINFORCE.
 """
 import gym
 import time
@@ -65,7 +66,7 @@ class REINFORCEAgent:
 
     def train_episode(self) -> Tuple[Union[float, int], int]:
         ep_rewards = 0
-        state = env.reset()  # initialize state
+        state = self.env.reset()  # initialize state
         done = False
         cur_step = 0
         reward_trajectory, state_trajectory, action_prob_trajectory = [], [], []
@@ -82,7 +83,7 @@ class REINFORCEAgent:
                 action_prob = self.model(state)
                 action = np.random.choice(self.num_actions, p=np.squeeze(action_prob))
 
-                state, reward, done, _ = env.step(action)
+                state, reward, done, _ = self.env.step(action)
 
                 # Some bookkeeping
                 ep_rewards += reward
@@ -119,19 +120,12 @@ class REINFORCEAgent:
                 self.env.render()
             action_prob = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
-            state, reward, done, _ = env.step(action)
+            state, reward, done, _ = self.env.step(action)
             total_reward += reward
         return total_reward
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--epochs", type=int, default=400)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -142,6 +136,7 @@ if __name__ == '__main__':
         env.seed(args.seed)
 
     # Create helper vars for model creation
+    is_discrete_env = True if type(env.action_space) == gym.spaces.discrete.Discrete else False
     _num_inputs = len(env.observation_space.high)
     _num_actions = env.action_space.n
 
@@ -194,9 +189,19 @@ if __name__ == '__main__':
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
 
     # Plot summary of results
-
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--epochs", type=int, default=400)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

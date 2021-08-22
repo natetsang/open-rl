@@ -241,26 +241,7 @@ class MBPOAgent:
         return avg_dynamics_loss
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
-    parser.add_argument("--epochs", type=int, default=10)
-
-    parser.add_argument("--ensemble_size", type=int, default=3)  # number of models in the ensemble
-    parser.add_argument("--init_exploration_steps", type=int, default=5000)  # number of steps to take before training
-    parser.add_argument("--rollout_length", type=int, default=1)  # number of steps to take in branched rollouts
-    parser.add_argument('--max_ep_len', type=int, default=100)  # max trajectory length
-
-    parser.add_argument("--num_env_steps_per_epoch", type=int, default=500)  # 1000 in MBPO paper
-    parser.add_argument("--num_model_rollouts_per_env_step", type=int, default=100)  # 400 in MBPO paper
-    parser.add_argument("--num_policy_updates_per_env_step", type=int, default=10)  # 20 in MBPO paper
-
-    parser.add_argument("--policy_train_batch_size", type=int, default=256)  # Batch size for SAC policy training
-    parser.add_argument("--dynamics_train_batch_size", type=int, default=512)  # Batch size per dynamicsc model
-
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -334,3 +315,26 @@ if __name__ == '__main__':
 
         # Now that we've completed training, let's plot the results
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--env", type=str, default="obstacles-cs285-v0")
+    parser.add_argument("--epochs", type=int, default=10)
+
+    parser.add_argument("--ensemble_size", type=int, default=3)  # number of models in the ensemble
+    parser.add_argument("--init_exploration_steps", type=int, default=5000)  # number of steps to take before training
+    parser.add_argument("--rollout_length", type=int, default=1)  # number of steps to take in branched rollouts
+    parser.add_argument('--max_ep_len', type=int, default=100)  # max trajectory length
+
+    parser.add_argument("--num_env_steps_per_epoch", type=int, default=500)  # 1000 in MBPO paper
+    parser.add_argument("--num_model_rollouts_per_env_step", type=int, default=100)  # 400 in MBPO paper
+    parser.add_argument("--num_policy_updates_per_env_step", type=int, default=10)  # 20 in MBPO paper
+
+    parser.add_argument("--policy_train_batch_size", type=int, default=256)  # Batch size for SAC policy training
+    parser.add_argument("--dynamics_train_batch_size", type=int, default=512)  # Batch size per dynamicsc model
+
+    args = parser.parse_args()
+
+    main()

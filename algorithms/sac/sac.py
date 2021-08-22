@@ -199,7 +199,7 @@ class SACAgent:
             q_targets_min = tf.math.minimum(q_targets1, q_targets2)
 
             # Step 3: Calculate bellman backup
-            targets = rewards + GAMMA * (1 - dones) * (q_targets_min - agent.alpha * logprob_next_action)
+            targets = rewards + GAMMA * (1 - dones) * (q_targets_min - self.alpha * logprob_next_action)
 
             # Step 4: Calculate critic losses and do gradient step
             # Calculate critic1 loss
@@ -227,7 +227,7 @@ class SACAgent:
                     critic1_values = self.critic_model1([states, actions])
                     critic2_values = self.critic_model2([states, actions])
                     critic_min = tf.math.minimum(critic1_values, critic2_values)
-                    actor_loss = -tf.reduce_mean(critic_min - agent.alpha * logprob)
+                    actor_loss = -tf.reduce_mean(critic_min - self.alpha * logprob)
                 grads = tape.gradient(actor_loss, self.actor_model.trainable_variables)
                 self.actor_optimizer.apply_gradients(zip(grads, self.actor_model.trainable_variables))
 
@@ -247,14 +247,7 @@ class SACAgent:
         return ep_rewards, cur_step
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
-    parser.add_argument("--epochs", type=int, default=200)
-    parser.add_argument("--seed", type=int)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
 
@@ -338,3 +331,14 @@ if __name__ == '__main__':
                           steps_history=ep_steps_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="Pendulum-v0")
+    parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--seed", type=int)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

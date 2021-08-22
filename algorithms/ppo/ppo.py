@@ -256,15 +256,7 @@ class PPOAgent:
         return float(np.mean(total_rewards))
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
-    parser.add_argument("--num_envs", type=int, default=16)
-    parser.add_argument("--epochs", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Make single env for testing model performance
     eval_env = gym.make(args.env)
 
@@ -313,3 +305,14 @@ if __name__ == '__main__':
         template = "running reward: {:.2f} | eval reward: {:.2f} at episode {} & step {}"
         print(template.format(running_reward, eval_rews, e, e * NUM_STEPS_PER_ROLLOUT * args.num_envs))
 
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="Pendulum-v0")
+    parser.add_argument("--num_envs", type=int, default=16)
+    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

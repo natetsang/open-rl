@@ -174,17 +174,7 @@ class CQLAgent:
         return total_reward
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--online_epochs", type=int, default=90)
-    parser.add_argument("--offline_epochs", type=int, default=1000)
-    parser.add_argument("--evaluation_epochs", type=int, default=100)
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument('--cql_alpha', type=float, default=0.5)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
     offline_env = gym.make(args.env)
@@ -301,3 +291,17 @@ if __name__ == '__main__':
     #                       steps_history=ep_steps_history,
     #                       wallclock_history=ep_wallclock_history,
     #                       save_dir="./results.png")
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--online_epochs", type=int, default=90)
+    parser.add_argument("--offline_epochs", type=int, default=1000)
+    parser.add_argument("--evaluation_epochs", type=int, default=100)
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument('--cql_alpha', type=float, default=0.5)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+    args = parser.parse_args()
+
+    main()

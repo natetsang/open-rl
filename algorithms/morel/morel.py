@@ -348,28 +348,7 @@ class MOReLAgent:
         return total_reward
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--seed", type=int, default=1)
-    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
-
-    parser.add_argument("--online_epochs", type=int, default=80)  # number of epochs to run online agent
-    parser.add_argument("--offline_epochs", type=int, default=1)  # number of epochs to run MOReL agent
-    parser.add_argument("--evaluation_epochs", type=int, default=100)  # number of epochs to evaluate MOReL agent
-
-    parser.add_argument("--ensemble_size", type=int, default=4)  # number of dynamics models in the ensemble
-    parser.add_argument("--horizon", type=int, default=25)  # number of steps to take model-based rollouts
-    parser.add_argument("--usad_threshold_beta", type=float, default=0.8)  # Beta for calculating USAD threshold
-    parser.add_argument("--halt_reward", type=float, default=-5.0)  # Beta for calculating USAD threshold
-
-    parser.add_argument('--num_dynamics_train_steps_per_iter', type=int, default=1000)  # number of dynamics grad updates per iter
-    parser.add_argument('--dynamics_train_batch_size', type=int, default=128)  # training batch size per dynamics model
-    parser.add_argument('--num_policy_updates_per_iter', type=int, default=50)  # number of policy grad updates per iter
-    parser.add_argument('--num_policy_rollouts_per_update', type=int, default=10)
-
-    args = parser.parse_args()
-
+def main() -> None:
     # Create environment
     env = gym.make(args.env)
     offline_env = gym.make(args.env)
@@ -491,3 +470,28 @@ if __name__ == '__main__':
     print("Evaluation results: ")
     print(f"MOReL mean evaluation reward (beta = {args.usad_threshold_beta}) : {np.mean(morel_evaluation_rewards)}")
     print("Trained DQN mean evaluation reward: ", np.mean(dqn_evaluation_rewards))
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--env", type=str, default="CartPole-v0")
+    parser.add_argument("--seed", type=int, default=1)
+    parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
+
+    parser.add_argument("--online_epochs", type=int, default=80)  # number of epochs to run online agent
+    parser.add_argument("--offline_epochs", type=int, default=1)  # number of epochs to run MOReL agent
+    parser.add_argument("--evaluation_epochs", type=int, default=100)  # number of epochs to evaluate MOReL agent
+
+    parser.add_argument("--ensemble_size", type=int, default=4)  # number of dynamics models in the ensemble
+    parser.add_argument("--horizon", type=int, default=25)  # number of steps to take model-based rollouts
+    parser.add_argument("--usad_threshold_beta", type=float, default=0.8)  # Beta for calculating USAD threshold
+    parser.add_argument("--halt_reward", type=float, default=-5.0)  # Beta for calculating USAD threshold
+
+    parser.add_argument('--num_dynamics_train_steps_per_iter', type=int, default=1000)  # number of dynamics grad updates per iter
+    parser.add_argument('--dynamics_train_batch_size', type=int, default=128)  # training batch size per dynamics model
+    parser.add_argument('--num_policy_updates_per_iter', type=int, default=50)  # number of policy grad updates per iter
+    parser.add_argument('--num_policy_rollouts_per_update', type=int, default=10)
+
+    args = parser.parse_args()
+
+    main()
