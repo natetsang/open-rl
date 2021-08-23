@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_network
+from .models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
 from .utils import ReplayBuffer, OUActionNoise, plot_training_results
 tf.keras.backend.set_floatx('float32')
 
@@ -32,22 +32,22 @@ class DDPGAgent:
         self.env_action_ub = self.env.action_space.high[0]
 
         # Actor and target actor models
-        self.actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                          num_actions=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                          action_dims=self.num_actions,
                                           env_action_lb=self.env_action_lb,
                                           env_action_ub=self.env_action_ub)
-        self.target_actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                                 num_actions=self.num_actions,
+        self.target_actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                                 action_dims=self.num_actions,
                                                  env_action_lb=self.env_action_lb,
                                                  env_action_ub=self.env_action_ub)
         self.target_actor_model.set_weights(self.actor_model.get_weights())
         self.actor_optimizer = actor_optimizer
 
         # Critic and target critic models
-        self.critic_model = critic_model_fn(num_inputs=self.num_inputs,
-                                            num_actions=self.num_actions)
-        self.target_critic_model = critic_model_fn(num_inputs=self.num_inputs,
-                                                   num_actions=self.num_actions)
+        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
+                                            action_dims=self.num_actions)
+        self.target_critic_model = critic_model_fn(state_dims=self.num_inputs,
+                                                   action_dims=self.num_actions)
         self.target_critic_model.set_weights(self.critic_model.get_weights())
         self.critic_optimizer = critic_optimizer
 
@@ -181,7 +181,7 @@ def main() -> None:
     agent = DDPGAgent(environment=env,
                       actor_model_fn=ddpg_actor_fc_continuous_network,
                       actor_optimizer=actor_opt,
-                      critic_model_fn=ddpg_critic_fc_network,
+                      critic_model_fn=ddpg_critic_fc_continuous_network,
                       critic_optimizer=critic_opt,
                       replay_buffer=buffer,
                       model_kwargs=dict(num_inputs=_num_inputs,

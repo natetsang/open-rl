@@ -7,7 +7,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from .models import policy_gradient_fc_discrete_network
+from models.models import actor_fc_discrete_network
 from .utils import plot_training_results
 
 
@@ -50,10 +50,10 @@ class REINFORCEAgent:
         self.num_actions = model_kwargs.get('num_actions')
 
         # Model vars
-        self.model = model_fn(num_inputs=self.num_inputs,
+        self.model = model_fn(state_dims=self.num_inputs,
+                              num_actions=self.num_actions,
                               num_hidden_layers=model_kwargs.get("num_hidden_layers"),
-                              hidden_size=model_kwargs.get("hidden_size"),
-                              num_actions=self.num_actions)
+                              hidden_size=model_kwargs.get("hidden_size"))
         self.optimizer = optimizer
 
         # Training vars
@@ -152,7 +152,7 @@ def main() -> None:
     # Create agent
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
     agent = REINFORCEAgent(environment=env,
-                           model_fn=policy_gradient_fc_discrete_network,
+                           model_fn=actor_fc_discrete_network,
                            optimizer=opt,
                            model_kwargs=dict(num_inputs=_num_inputs,
                                              num_hidden_layers=2,

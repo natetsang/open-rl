@@ -42,12 +42,12 @@ class DQNAgent:
 
         self.history_length = model_kwargs.get("history_length", 4)
         # Actor and target actor models
-        self.model = model_fn(num_inputs=self.num_inputs,
+        self.model = model_fn(state_dims=self.num_inputs,
                               num_actions=self.num_actions,
                               num_timesteps=self.history_length,
                               num_hidden_fc_layers=num_hidden_layers,
                               hidden_size=hidden_size)
-        self.target_model = model_fn(num_inputs=self.num_inputs,
+        self.target_model = model_fn(state_dims=self.num_inputs,
                                      num_actions=self.num_actions,
                                      num_timesteps=self.history_length,
                                      num_hidden_fc_layers=num_hidden_layers,

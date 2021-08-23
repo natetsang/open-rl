@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from typing import Callable, Union, Tuple, List
-from .models import actor_fc_discrete_network, actor_critic_fc_discrete_network
+from models.models import actor_fc_discrete_network, actor_critic_fc_discrete_network
 from .utils import ReplayBuffer, plot_training_results
 tfd = tfp.distributions
 
@@ -44,7 +44,7 @@ class ImitationAgent:
         self.expert_data = ImitationAgent.load_expert_data(expert_data_path)
 
         # Actor model
-        self.model = model_fn(num_inputs=self.num_inputs,
+        self.model = model_fn(state_dims=self.num_inputs,
                               num_actions=self.num_actions,
                               num_hidden_layers=num_hidden_layers,
                               hidden_size=hidden_size)
@@ -218,7 +218,7 @@ def main() -> None:
     # TODO >> I think it's a bit cleaner to load the entire model instead of just the weights
     #   but I'm getting a TF error that I think was fixed in a later version. I should probably
     #   try updating the version and seeing if it fixes itself.
-    expert = actor_critic_fc_discrete_network(num_inputs=_num_inputs,
+    expert = actor_critic_fc_discrete_network(state_dims=_num_inputs,
                                               num_actions=_num_actions,
                                               num_hidden_layers=2,
                                               hidden_size=128)

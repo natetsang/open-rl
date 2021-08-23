@@ -3,23 +3,26 @@ from tensorflow.keras import layers
 from typing import Union
 
 
-def ddpg_actor_fc_continuous_network(num_inputs: int,
-                                     num_actions: int,
+def ddpg_actor_fc_continuous_network(state_dims: int,
+                                     action_dims: int,
                                      env_action_lb: Union[int, float],
                                      env_action_ub: Union[int, float]) -> tf.keras.Model:
     """
-    Creates DDPG actor model using the exact model architecture as described in
-    the original paper: https://arxiv.org/abs/1509.02971
-    This model is fully connected, takes in the state as input
-    and outputs the a deterministic action (i.e. actor).
+    Creates fully-connected DDPG Actor model for CONTINUOUS action spaces
+    using the exact model architecture as described in the original paper: https://arxiv.org/abs/1509.02971
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
+    Input:
+    - state vector
+    Output:
+    - action to take (deterministic)
+
+    :param state_dims: The number of state dimensions
+    :param action_dims: The number of action dimensions
     :param env_action_lb: The environment's action upper bound
     :param env_action_ub: The environment's action upper bound
-    :return: tf.keras.Model!
+    :return: tf.keras.Model
     """
-    inputs = layers.Input(shape=(num_inputs,), name="input_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_layer")
 
     # Create shared hidden layers
     hidden1 = layers.BatchNormalization()(inputs)
@@ -32,7 +35,7 @@ def ddpg_actor_fc_continuous_network(num_inputs: int,
 
     # Create output layers
     action = layers.BatchNormalization()(hidden2)
-    action = layers.Dense(num_actions,
+    action = layers.Dense(action_dims,
                           activation="tanh",
                           kernel_initializer=weight_init,
                           name="action_output_layer")(action)
@@ -45,22 +48,25 @@ def ddpg_actor_fc_continuous_network(num_inputs: int,
     return model
 
 
-def ddpg_critic_fc_network(num_inputs: int,
-                           num_actions: int,
-                           l2_reg_factor: float = 0.01) -> tf.keras.Model:
+def ddpg_critic_fc_continuous_network(state_dims: int,
+                                      action_dims: int,
+                                      l2_reg_factor: float = 0.01) -> tf.keras.Model:
     """
-    Creates DDPG critic model using the exact model architecture as described in
-    the original paper: https://arxiv.org/abs/1509.02971
-    This model is fully connected andtakes in both the state and action
-    as input. It outputs the value (i.e. critic).
+    Creates fully-connected DDPG Critic model for CONTINUOUS action spaces
+    using the exact model architecture as described in the original paper: https://arxiv.org/abs/1509.02971
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
+    Input:
+    - state vector
+    Output:
+    - value of being in the current state
+
+    :param state_dims: The number of state dimensions
+    :param action_dims: The number of action dimensions
     :param l2_reg_factor: L2 regularization factor (i.e. penalty)
-    :return: tf.keras.Model!
+    :return: tf.keras.Model
     """
     # Get state inputs and pass through one hidden layer
-    state_inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
+    state_inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
     hidden_state = layers.BatchNormalization()(state_inputs)
     hidden_state = layers.Dense(400,
                                 activation="relu",
@@ -68,7 +74,7 @@ def ddpg_critic_fc_network(num_inputs: int,
                                 name="hidden_state_layer")(hidden_state)
 
     # Get action inputs and pass through one hidden layer
-    action_inputs = layers.Input(shape=(num_actions,), name="input_action_layer")
+    action_inputs = layers.Input(shape=(action_dims,), name="input_action_layer")
     hidden_action = layers.BatchNormalization()(action_inputs)
     hidden_action = layers.Dense(400,
                                  activation="relu",

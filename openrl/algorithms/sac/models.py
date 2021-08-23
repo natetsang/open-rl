@@ -5,8 +5,8 @@ import tensorflow_probability as tfp
 tfd = tfp.distributions
 
 
-def sac_actor_fc_continuous_network(num_inputs: int,
-                                    num_actions: int,
+def sac_actor_fc_continuous_network(state_dims: int,
+                                    action_dims: int,
                                     env_action_lb: Union[int, float],
                                     env_action_ub: Union[int, float],
                                     log_std_min: Union[int, float],
@@ -15,22 +15,25 @@ def sac_actor_fc_continuous_network(num_inputs: int,
                                     hidden_size: int = 256,
                                     ) -> tf.keras.Model:
     """
-    Creates SAC actor model using the exact model architecture as described in
-    the original paper: https://arxiv.org/pdf/1802.09477.pdf
-    This model is fully connected, takes in the state as input
-    and outputs the a deterministic action (i.e. actor).
+    Creates fully-connected SAC Actor model for CONTINUOUS action spaces
+    using the exact model architecture as described in the original paper: https://arxiv.org/pdf/1802.09477.pdf
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
+    Input:
+    - state vector
+    Output:
+    - action to take (stochastic via reparameterization trick)
+
+    :param state_dims: The number of state dimensions
+    :param action_dims: The number of action dimensions
     :param env_action_lb: The environment's action upper bound
     :param env_action_ub: The environment's action upper bound
     :param log_std_min: The minimum permitted log of the standard deviation
     :param log_std_max: The maximum permitted log of the standard deviation
-    :param num_hidden_layers: The number of hidden layers in the fully-connected model
-    :param hidden_size: The number of neurons in each hidden layer (note that all hidden layers have same number)
-    :return: tf.keras.Model!
+    :param num_hidden_layers: The number of hidden layers
+    :param hidden_size: The number of neurons in each hidden layer (all layers are same)
+    :return: tf.keras.Model
     """
-    inputs = layers.Input(shape=(num_inputs,), name="input_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_layer")
 
     # Create shared hidden layers
     hidden = inputs
@@ -38,8 +41,8 @@ def sac_actor_fc_continuous_network(num_inputs: int,
         hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
 
     # Output mean and log_std
-    mu = layers.Dense(num_actions)(hidden)
-    log_std = layers.Dense(num_actions)(hidden)
+    mu = layers.Dense(action_dims)(hidden)
+    log_std = layers.Dense(action_dims)(hidden)
     log_std = tf.clip_by_value(log_std, log_std_min, log_std_max)
 
     # Create Normal distribution with outputs
@@ -72,22 +75,27 @@ def sac_actor_fc_continuous_network(num_inputs: int,
     return model
 
 
-def critic_fc_network(num_inputs: int,
-                      num_actions: int,
-                      num_hidden_layers: int = 2,
-                      hidden_size: int = 256) -> tf.keras.Model:
+def sac_critic_fc_continuous_network(state_dims: int,
+                                     action_dims: int,
+                                     num_hidden_layers: int = 2,
+                                     hidden_size: int = 256) -> tf.keras.Model:
     """
-    Creates critic model. This model is fully connected, takes in the state AND action as inputs
-    and outputs the value (i.e. critic).
+    Creates fully-connected SAC Critic model for CONTINUOUS action spaces.
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
-    :param num_hidden_layers: The number of hidden layers in the fully-connected model
-    :param hidden_size: The number of neurons in each hidden layer (note that all hidden layers have same number)
-    :return: tf.keras.Model!
+    Input:
+    - state vector
+    - action vector
+    Output:
+    - value of being in the current state and taking a particular action
+
+    :param state_dims: The number of state dimensions
+    :param action_dims: The number of action dimensions
+    :param num_hidden_layers: The number of hidden layers
+    :param hidden_size: The number of neurons in each hidden layer (all layers are same)
+    :return: tf.keras.Model
     """
-    inputs_state = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    inputs_action = layers.Input(shape=(num_actions,), name="input_action_layer")
+    inputs_state = layers.Input(shape=(state_dims,), name="input_state_layer")
+    inputs_action = layers.Input(shape=(action_dims,), name="input_action_layer")
 
     inputs_concat = layers.concatenate([inputs_state, inputs_action])
 

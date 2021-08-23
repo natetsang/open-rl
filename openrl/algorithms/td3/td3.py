@@ -33,29 +33,29 @@ class TD3Agent:
         self.env_action_ub = self.env.action_space.high[0]
 
         # Actor and target actor models
-        self.actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                          num_actions=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                          action_dims=self.num_actions,
                                           env_action_lb=self.env_action_lb,
                                           env_action_ub=self.env_action_ub)
-        self.target_actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                                 num_actions=self.num_actions,
+        self.target_actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                                 action_dims=self.num_actions,
                                                  env_action_lb=self.env_action_lb,
                                                  env_action_ub=self.env_action_ub)
         self.target_actor_model.set_weights(self.actor_model.get_weights())
         self.actor_optimizer = actor_optimizer
 
         # Twin 1 - Critic and target critic models
-        self.critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions)
-        self.target_critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions)
+        self.critic_model1 = critic_model_fn(state_dims=self.num_inputs,
+                                             action_dims=self.num_actions)
+        self.target_critic_model1 = critic_model_fn(state_dims=self.num_inputs,
+                                                    action_dims=self.num_actions)
         self.target_critic_model1.set_weights(self.critic_model1.get_weights())
 
         # Twin 2 - Critic and target critic models
-        self.critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions)
-        self.target_critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions)
+        self.critic_model2 = critic_model_fn(state_dims=self.num_inputs,
+                                             action_dims=self.num_actions)
+        self.target_critic_model2 = critic_model_fn(state_dims=self.num_inputs,
+                                                    action_dims=self.num_actions)
         self.target_critic_model2.set_weights(self.critic_model2.get_weights())
 
         # Critic optimizer

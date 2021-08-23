@@ -43,11 +43,11 @@ class CQLAgent:
         hidden_size = model_kwargs.get("hidden_size")
 
         # Actor and target actor models
-        self.model = model_fn(num_inputs=self.num_inputs,
+        self.model = model_fn(state_dims=self.num_inputs,
                               num_actions=self.num_actions,
                               num_hidden_layers=num_hidden_layers,
                               hidden_size=hidden_size)
-        self.target_model = model_fn(num_inputs=self.num_inputs,
+        self.target_model = model_fn(state_dims=self.num_inputs,
                                      num_actions=self.num_actions,
                                      num_hidden_layers=num_hidden_layers,
                                      hidden_size=hidden_size)

@@ -9,7 +9,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from .models import actor_fc_discrete_network, critic_fc_network
+from models.models import actor_fc_discrete_network, critic_fc_network
 from .utils import plot_training_results
 
 
@@ -75,11 +75,11 @@ class ActorCriticAgent:
         self.num_actions = model_kwargs.get('num_actions')
 
         # Model vars
-        self.actor_model = actor_model_fn(num_inputs=self.num_inputs,
+        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                          num_actions=self.num_actions,
                                           num_hidden_layers=model_kwargs.get("num_hidden_layers"),
-                                          hidden_size=model_kwargs.get("hidden_size"),
-                                          num_actions=self.num_actions)
-        self.critic_model = critic_model_fn(num_inputs=self.num_inputs,
+                                          hidden_size=model_kwargs.get("hidden_size"))
+        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
                                             num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                             hidden_size=model_kwargs.get("hidden_size"))
 

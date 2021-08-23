@@ -4,11 +4,11 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import sac_actor_fc_continuous_network, critic_fc_network
+from .models import sac_actor_fc_continuous_network, sac_critic_fc_continuous_network
 from .utils import ReplayBuffer, plot_training_results
 import tensorflow_probability as tfp
 tfd = tfp.distributions
-tf.keras.backend.set_floatx('float32')
+
 
 # Set up
 GAMMA = 0.99
@@ -45,16 +45,16 @@ class SACAgent:
         hidden_size = model_kwargs.get('hidden_size')
 
         # Actor and target actor models
-        self.actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                          num_actions=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                          action_dims=self.num_actions,
                                           env_action_lb=self.env_action_lb,
                                           env_action_ub=self.env_action_ub,
                                           log_std_min=model_kwargs.get('log_std_min'),
                                           log_std_max=model_kwargs.get('log_std_max'),
                                           num_hidden_layers=num_hidden_layers,
                                           hidden_size=hidden_size)
-        self.target_actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                                 num_actions=self.num_actions,
+        self.target_actor_model = actor_model_fn(state_dims=self.num_inputs,
+                                                 action_dims=self.num_actions,
                                                  env_action_lb=self.env_action_lb,
                                                  env_action_ub=self.env_action_ub,
                                                  log_std_min=model_kwargs.get('log_std_min'),
@@ -65,25 +65,25 @@ class SACAgent:
         self.actor_optimizer = actor_optimizer
 
         # Twin 1 - Critic and target critic models
-        self.critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions,
+        self.critic_model1 = critic_model_fn(state_dims=self.num_inputs,
+                                             action_dims=self.num_actions,
                                              num_hidden_layers=num_hidden_layers,
                                              hidden_size=hidden_size)
         self.critic1_optimizer = critic_optimizers[0]
-        self.target_critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions,
+        self.target_critic_model1 = critic_model_fn(state_dims=self.num_inputs,
+                                                    action_dims=self.num_actions,
                                                     num_hidden_layers=num_hidden_layers,
                                                     hidden_size=hidden_size)
         self.target_critic_model1.set_weights(self.critic_model1.get_weights())
 
         # Twin 2 - Critic and target critic models
-        self.critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions,
+        self.critic_model2 = critic_model_fn(state_dims=self.num_inputs,
+                                             action_dims=self.num_actions,
                                              num_hidden_layers=num_hidden_layers,
                                              hidden_size=hidden_size)
         self.critic2_optimizer = critic_optimizers[1]
-        self.target_critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions,
+        self.target_critic_model2 = critic_model_fn(state_dims=self.num_inputs,
+                                                    action_dims=self.num_actions,
                                                     num_hidden_layers=num_hidden_layers,
                                                     hidden_size=hidden_size)
         self.target_critic_model2.set_weights(self.critic_model2.get_weights())
@@ -273,7 +273,7 @@ def main() -> None:
     agent = SACAgent(environment=env,
                      actor_model_fn=sac_actor_fc_continuous_network,
                      actor_optimizer=actor_opt,
-                     critic_model_fn=critic_fc_network,
+                     critic_model_fn=sac_critic_fc_continuous_network,
                      critic_optimizers=(critic1_opt, critic2_opt),
                      alpha_optimizer=alpha_opt,
                      replay_buffer=buffer,

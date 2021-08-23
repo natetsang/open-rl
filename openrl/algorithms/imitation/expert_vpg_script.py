@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from .models import actor_critic_fc_discrete_network
+from models.models import actor_critic_fc_discrete_network
 
 
 # Set up constants

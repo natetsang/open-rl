@@ -8,7 +8,7 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
-from .models import actor_critic_fc_discrete_network
+from models.models import actor_critic_fc_discrete_network
 from .utils import plot_training_results
 
 import multiprocessing as mp
@@ -96,10 +96,10 @@ class ActorCriticWorker(threading.Thread):
         self.num_actions = model_kwargs.get('num_actions')
 
         # Local model vars
-        self.local_model = model_fn(num_inputs=self.num_inputs,
+        self.local_model = model_fn(state_dims=self.num_inputs,
+                                    num_actions=self.num_actions,
                                     num_hidden_layers=model_kwargs.get("num_hidden_layers"),
-                                    hidden_size=model_kwargs.get("hidden_size"),
-                                    num_actions=self.num_actions)
+                                    hidden_size=model_kwargs.get("hidden_size"))
         self.local_optimizer = optimizer
 
         # Local training vars
