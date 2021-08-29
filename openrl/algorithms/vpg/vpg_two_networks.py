@@ -49,15 +49,15 @@ class VPGAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         # Model vars
-        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
+        self.actor_model = actor_model_fn(state_dims=self.state_dims,
                                           num_actions=self.num_actions,
                                           num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                           hidden_size=model_kwargs.get("hidden_size"))
-        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
+        self.critic_model = critic_model_fn(state_dims=self.state_dims,
                                             num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                             hidden_size=model_kwargs.get("hidden_size"))
 
@@ -156,7 +156,7 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
     _num_actions = env.action_space.n
 
     # Create agent
@@ -168,7 +168,7 @@ def main() -> None:
                      actor_optimizer=actor_opt,
                      critic_model_fn=critic_fc_network,
                      critic_optimizer=critic_opt,
-                     model_kwargs=dict(num_inputs=_num_inputs,
+                     model_kwargs=dict(state_dims=_state_dims,
                                        num_hidden_layers=2,
                                        hidden_size=128,
                                        num_actions=_num_actions),

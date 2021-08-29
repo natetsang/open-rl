@@ -27,15 +27,15 @@ class DynaQAgent:
                  train_kwargs: dict = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         # Q-network
-        self.Q_table = np.zeros((self.num_inputs, self.num_actions), dtype=np.float32)
+        self.Q_table = np.zeros((self.state_dims, self.num_actions), dtype=np.float32)
         # Dynamics model
-        self.transition_table = np.zeros((self.num_inputs, self.num_actions, self.num_inputs), dtype=np.int)
+        self.transition_table = np.zeros((self.state_dims, self.num_actions, self.state_dims), dtype=np.int)
         # Reward model
-        self.reward_table = np.zeros((self.num_inputs, self.num_actions, self.num_inputs), dtype=np.float32)
+        self.reward_table = np.zeros((self.state_dims, self.num_actions, self.state_dims), dtype=np.float32)
 
         # Training vars
         self.num_planning_steps_per_iter = train_kwargs.get("num_planning_steps_per_iter", 5)
@@ -101,7 +101,7 @@ class DynaQAgent:
 
             # Pass the (s,a) tuple through model to simulate the next state and reward
             prbs = self.transition_table[state][action] / self.transition_table[state][action].sum()  # for stochastic
-            next_state = np.random.choice(np.arange(self.num_inputs), size=1, p=prbs)[0]
+            next_state = np.random.choice(np.arange(self.state_dims), size=1, p=prbs)[0]
             reward = self.reward_table[state][action][next_state]  # get average reward for (s,a,s') tuple
 
             # Update Q-table using simulated data
@@ -131,7 +131,7 @@ class DynaQAgent:
 
             # Pass the (s,a) tuple through model to simulate the next state and reward
             prbs = self.transition_table[state][action] / self.transition_table[state][action].sum()  # for stochastic
-            next_state = np.random.choice(np.arange(self.num_inputs), size=1, p=prbs)[0]
+            next_state = np.random.choice(np.arange(self.state_dims), size=1, p=prbs)[0]
             reward = self.reward_table[state][action][next_state]  # get average reward for (s,a,s') tuple
 
             # Update Q-table using simulated data
@@ -189,12 +189,12 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = env.observation_space.n
+    _state_dims = env.observation_space.n
     _num_actions = env.action_space.n
 
     # Create agent
     agent = DynaQAgent(environment=env,
-                       model_kwargs=dict(num_inputs=_num_inputs, num_actions=_num_actions),
+                       model_kwargs=dict(state_dims=_state_dims, num_actions=_num_actions),
                        train_kwargs=dict(num_planning_steps_per_iter=args.num_planning_steps_per_iter))
 
     # Run training

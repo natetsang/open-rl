@@ -36,18 +36,18 @@ class CQLAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         num_hidden_layers = model_kwargs.get("num_hidden_layers")
         hidden_size = model_kwargs.get("hidden_size")
 
         # Actor and target actor models
-        self.model = model_fn(state_dims=self.num_inputs,
+        self.model = model_fn(state_dims=self.state_dims,
                               num_actions=self.num_actions,
                               num_hidden_layers=num_hidden_layers,
                               hidden_size=hidden_size)
-        self.target_model = model_fn(state_dims=self.num_inputs,
+        self.target_model = model_fn(state_dims=self.state_dims,
                                      num_actions=self.num_actions,
                                      num_hidden_layers=num_hidden_layers,
                                      hidden_size=hidden_size)
@@ -187,11 +187,12 @@ def main() -> None:
         offline_env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
+    _action_dims = 1
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
+    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
 
     # Select network architecture
     model_func = dqn_fc_discrete_network
@@ -205,7 +206,7 @@ def main() -> None:
                             model_fn=model_func,
                             optimizer=online_opt,
                             replay_buffer=buffer,
-                            model_kwargs=dict(num_inputs=_num_inputs,
+                            model_kwargs=dict(state_dims=_state_dims,
                                               num_actions=_num_actions,
                                               num_hidden_layers=2,
                                               hidden_size=256),
@@ -223,7 +224,7 @@ def main() -> None:
                              model_fn=model_func,
                              optimizer=offline_opt,
                              replay_buffer=deepcopy(buffer),  # Use buffer with prepopulated data
-                             model_kwargs=dict(num_inputs=_num_inputs,
+                             model_kwargs=dict(state_dims=_state_dims,
                                                num_actions=_num_actions,
                                                num_hidden_layers=2,
                                                hidden_size=256),

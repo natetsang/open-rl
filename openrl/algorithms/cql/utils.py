@@ -15,7 +15,7 @@ class ReplayBuffer:
         self.batch_size = batch_size
 
         self.buffer_state = np.empty(shape=(capacity, state_dim))
-        self.buffer_action = np.empty(shape=(capacity, 1))
+        self.buffer_action = np.empty(shape=(capacity, action_dim))
         self.buffer_reward = np.empty(shape=(capacity, 1))
         self.buffer_next_state = np.empty(shape=(capacity, state_dim))
         self.buffer_done = np.empty(shape=(capacity, 1))

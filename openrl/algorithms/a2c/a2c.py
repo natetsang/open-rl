@@ -94,11 +94,11 @@ class ActorCriticAgent:
         # Env vars
         self.envs = environments
         self.eval_env = eval_env
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         # Model vars
-        self.model = model_fn(state_dims=self.num_inputs,
+        self.model = model_fn(state_dims=self.state_dims,
                               num_actions=self.num_actions,
                               num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                               hidden_size=model_kwargs.get("hidden_size"))
@@ -201,7 +201,7 @@ def main() -> None:
         eval_env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(eval_env.observation_space.high)
+    _state_dims = len(eval_env.observation_space.high)
     _num_actions = eval_env.action_space.n
 
     # Make multiple vectorized environments for synchronous training
@@ -214,7 +214,7 @@ def main() -> None:
                              eval_env=eval_env,
                              model_fn=actor_critic_fc_discrete_network,
                              optimizer=opt,
-                             model_kwargs=dict(num_inputs=_num_inputs,
+                             model_kwargs=dict(state_dims=_state_dims,
                                                num_hidden_layers=1,
                                                hidden_size=128,
                                                num_actions=_num_actions),

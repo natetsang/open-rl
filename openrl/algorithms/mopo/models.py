@@ -7,37 +7,8 @@ from typing import Union, Tuple
 tfd = tfp.distributions
 
 
-def dqn_fc_discrete_network(num_inputs: int,
-                            num_actions: int,
-                            num_hidden_layers: int,
-                            hidden_size: int) -> tf.keras.Model:
-    """
-    Creates deep Q-network for use in discrete-action space
-    This model is fully connected and takes in both the state and outputs one Q-value per action
-    as input. It outputs the Q-value.
-
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
-    :param num_hidden_layers: The number of hidden layers in the network
-    :param hidden_size: The number of neurons for each layer. Note that all layers have
-        the same hidden_size.
-    :return: tf.keras.Model!
-    """
-    # Get state inputs and pass through one hidden layer
-    inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
-
-    # Create shared hidden layers
-    hidden = inputs
-    for i in range(num_hidden_layers):
-        hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
-    outputs = layers.Dense(num_actions, name="output_layer")(hidden)
-
-    model = tf.keras.Model(inputs=inputs, outputs=outputs)
-    return model
-
-
-def sac_actor_fc_continuous_network(num_inputs: int,
-                                    num_actions: int,
+def sac_actor_fc_continuous_network(state_dims: int,
+                                    action_dims: int,
                                     env_action_lb: Union[int, float],
                                     env_action_ub: Union[int, float],
                                     log_std_min: Union[int, float],
@@ -51,8 +22,8 @@ def sac_actor_fc_continuous_network(num_inputs: int,
     This model is fully connected, takes in the state as input
     and outputs the a deterministic action (i.e. actor).
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
+    :param state_dims: The dimensionality of the observed state
+    :param action_dims: The dimensionality of the action space
     :param env_action_lb: The environment's action upper bound
     :param env_action_ub: The environment's action upper bound
     :param log_std_min: The minimum permitted log of the standard deviation
@@ -61,7 +32,7 @@ def sac_actor_fc_continuous_network(num_inputs: int,
     :param hidden_size: The number of neurons in each hidden layer (note that all hidden layers have same number)
     :return: tf.keras.Model!
     """
-    inputs = layers.Input(shape=(num_inputs,), name="input_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_layer")
 
     # Create shared hidden layers
     hidden = inputs
@@ -69,8 +40,8 @@ def sac_actor_fc_continuous_network(num_inputs: int,
         hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
 
     # Output mean and log_std
-    mu = layers.Dense(num_actions)(hidden)
-    log_std = layers.Dense(num_actions)(hidden)
+    mu = layers.Dense(action_dims)(hidden)
+    log_std = layers.Dense(action_dims)(hidden)
     log_std = tf.clip_by_value(log_std, log_std_min, log_std_max)
 
     # Create Normal distribution with outputs
@@ -103,22 +74,22 @@ def sac_actor_fc_continuous_network(num_inputs: int,
     return model
 
 
-def critic_fc_network(num_inputs: int,
-                      num_actions: int,
+def critic_fc_network(state_dims: int,
+                      action_dims: int,
                       num_hidden_layers: int = 2,
                       hidden_size: int = 256) -> tf.keras.Model:
     """
     Creates critic model. This model is fully connected, takes in the state AND action as inputs
     and outputs the value (i.e. critic).
 
-    :param num_inputs: The dimensionality of the observed state
-    :param num_actions: The dimensionality of the action space
+    :param state_dims: The dimensionality of the observed state
+    :param action_dims: The dimensionality of the action space
     :param num_hidden_layers: The number of hidden layers in the fully-connected model
     :param hidden_size: The number of neurons in each hidden layer (note that all hidden layers have same number)
     :return: tf.keras.Model!
     """
-    inputs_state = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    inputs_action = layers.Input(shape=(num_actions,), name="input_action_layer")
+    inputs_state = layers.Input(shape=(state_dims,), name="input_state_layer")
+    inputs_action = layers.Input(shape=(action_dims,), name="input_action_layer")
 
     inputs_concat = layers.concatenate([inputs_state, inputs_action])
 
@@ -136,17 +107,17 @@ def critic_fc_network(num_inputs: int,
 ####################################################################################################################
 
 
-def fc_discrete_network(num_inputs: int,
-                        num_actions: int,
-                        num_hidden_layers: int,
-                        hidden_size: int) -> tf.keras.Model:
+def fc_network(state_dims: int,
+               action_dims: int,
+               num_hidden_layers: int,
+               hidden_size: int) -> tf.keras.Model:
     """
     Input both normalized state and normalized action.
     Output the predicted normalized delta between the next state s' and the current state s.
     """
     # Get state inputs and pass through one hidden layer
-    state_inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    action_inputs = layers.Input(shape=(num_actions,), name="input_action_layer")
+    state_inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
+    action_inputs = layers.Input(shape=(action_dims,), name="input_action_layer")
     inputs_concat = layers.Concatenate(name="concatenated_layer")([state_inputs, action_inputs])
 
     # Create shared hidden layers
@@ -154,8 +125,8 @@ def fc_discrete_network(num_inputs: int,
     for i in range(num_hidden_layers):
         hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
 
-    output_mus = layers.Dense(num_inputs, name="output_mus")(hidden)
-    output_stds = layers.Dense(num_inputs, activation="softplus", name="output_stds")(hidden)
+    output_mus = layers.Dense(state_dims, name="output_mus")(hidden)
+    output_stds = layers.Dense(state_dims, activation="softplus", name="output_stds")(hidden)
 
     model = tf.keras.Model(inputs=[state_inputs, action_inputs], outputs=[output_mus, output_stds])
     return model
@@ -168,10 +139,10 @@ class FFModel:
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-        self.delta_network = fc_discrete_network(num_inputs=ob_dim,
-                                                 num_actions=ac_dim,
-                                                 num_hidden_layers=n_layers,
-                                                 hidden_size=hidden_size)
+        self.delta_network = fc_network(state_dims=ob_dim,
+                                        action_dims=ac_dim,
+                                        num_hidden_layers=n_layers,
+                                        hidden_size=hidden_size)
         self.trainable_variables = self.delta_network.trainable_variables
 
     def forward_pass(self, obs: np.ndarray, acs: np.ndarray, data_statistics: dict) -> Tuple[np.ndarray, np.ndarray]:

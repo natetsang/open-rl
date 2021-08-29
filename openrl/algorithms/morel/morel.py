@@ -56,26 +56,26 @@ class MOReLAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.num_actions = model_kwargs.get('num_actions')
-        self.action_dim = model_kwargs.get('action_dim')
 
         # Create ensemble of dynamics models
         self.ensemble_size = model_kwargs.get('ensemble_size')
         self.dyn_models = self.initialize_ensemble(dynamics_model_class, model_kwargs)
 
         # Create reward model
-        self.reward_model = reward_model_fn(num_inputs=self.num_inputs,
+        self.reward_model = reward_model_fn(state_dims=self.state_dims,
+                                            action_dims=self.action_dims,
                                             num_hidden_layers=model_kwargs.get("num_hidden_layers"),
-                                            hidden_size=model_kwargs.get("hidden_size"),
-                                            action_dim=self.action_dim)
+                                            hidden_size=model_kwargs.get("hidden_size"))
         self.reward_optimizer = reward_optimizer
 
         # Policy
-        self.policy = policy_model_fn(num_inputs=self.num_inputs,
+        self.policy = policy_model_fn(state_dims=self.state_dims,
+                                      num_actions=self.num_actions,
                                       num_hidden_layers=model_kwargs.get("num_hidden_layers"),
-                                      hidden_size=model_kwargs.get("hidden_size"),
-                                      num_actions=self.num_actions)
+                                      hidden_size=model_kwargs.get("hidden_size"))
         self.policy_optimizer = policy_optimizer
 
         # Replay buffer with offline data
@@ -106,8 +106,8 @@ class MOReLAgent:
         dyn_models = []
 
         for _ in range(ensemble_size):
-            model = model_class(ac_dim=self.action_dim,  # for discrete, it's not self.num_actions b/c the dim=1
-                                ob_dim=self.num_inputs,
+            model = model_class(ac_dim=self.action_dims,
+                                ob_dim=self.state_dims,
                                 n_layers=model_kwargs.get("num_hidden_layers"),
                                 hidden_size=model_kwargs.get("hidden_size"))
             dyn_models.append(model)
@@ -361,13 +361,13 @@ def main() -> None:
         offline_env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
     _is_discrete_action = type(env.action_space) == gym.spaces.discrete.Discrete
     _num_actions = env.action_space.n if _is_discrete_action else env.action_space.shape[0]
-    _action_dim = 1 if _is_discrete_action else env.action_space.shape[0]
+    _action_dims = 1 if _is_discrete_action else env.action_space.shape[0]
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
+    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
 
     # Select network architecture
     online_model_func = dqn_fc_discrete_network
@@ -386,7 +386,7 @@ def main() -> None:
                             model_fn=online_model_func,
                             optimizer=online_opt,
                             replay_buffer=buffer,
-                            model_kwargs=dict(num_inputs=_num_inputs,
+                            model_kwargs=dict(state_dims=_state_dims,
                                               num_actions=_num_actions,
                                               num_hidden_layers=2,
                                               hidden_size=256),
@@ -409,9 +409,9 @@ def main() -> None:
                                reward_model_fn=reward_model_func,
                                reward_optimizer=reward_opt,
                                replay_buffer=buffer,  # Use buffer with prepopulated data
-                               model_kwargs=dict(num_inputs=_num_inputs,
+                               model_kwargs=dict(state_dims=_state_dims,
+                                                 action_dims=_action_dims,
                                                  num_actions=_num_actions,
-                                                 action_dim=_action_dim,
                                                  num_hidden_layers=2,
                                                  hidden_size=256,
                                                  ensemble_size=args.ensemble_size),

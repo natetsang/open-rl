@@ -36,11 +36,11 @@ class ContextBandit:
         return rew
 
 
-def action_value_model(num_inputs: int,
+def action_value_model(state_dims: int,
                        num_hidden_layers: int,
                        hidden_size: int,
                        num_actions: int) -> tf.keras.Model:
-    inputs = layers.Input(shape=(num_inputs,), name="input_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_layer")
 
     # Create shared hidden layers
     hidden = inputs
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     n_arms = 20
     n_states = 10
     env = ContextBandit(n_states, n_arms)
-    model = action_value_model(num_inputs=n_states, num_hidden_layers=2, hidden_size=100, num_actions=n_arms)
+    model = action_value_model(state_dims=n_states, num_actions=n_arms, num_hidden_layers=2, hidden_size=100)
     opt = tf.keras.optimizers.Adam(learning_rate=0.01)
     rewards = []
     for i in range(5000):

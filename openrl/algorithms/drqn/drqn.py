@@ -34,7 +34,7 @@ class DQNAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         num_hidden_layers = model_kwargs.get("num_hidden_layers")
@@ -42,12 +42,12 @@ class DQNAgent:
 
         self.history_length = model_kwargs.get("history_length", 4)
         # Actor and target actor models
-        self.model = model_fn(state_dims=self.num_inputs,
+        self.model = model_fn(state_dims=self.state_dims,
                               num_actions=self.num_actions,
                               num_timesteps=self.history_length,
                               num_hidden_fc_layers=num_hidden_layers,
                               hidden_size=hidden_size)
-        self.target_model = model_fn(state_dims=self.num_inputs,
+        self.target_model = model_fn(state_dims=self.state_dims,
                                      num_actions=self.num_actions,
                                      num_timesteps=self.history_length,
                                      num_hidden_fc_layers=num_hidden_layers,
@@ -106,7 +106,7 @@ class DQNAgent:
         # Take action given current state
         if np.random.random() > self.epsilon:
             # Expand the dimensions so its in a batch
-            state = np.reshape(state, [1, self.history_length, self.num_inputs])
+            state = np.reshape(state, [1, self.history_length, self.state_dims])
 
             q_values = self.model(state)
             action = np.argmax(q_values)  # Take greedy action that maximizes Q
@@ -152,7 +152,7 @@ class DQNAgent:
 
     def train_episode(self) -> Tuple[Union[float, int], int]:
         ep_rewards = 0
-        init_state = np.zeros([self.history_length, self.num_inputs])
+        init_state = np.zeros([self.history_length, self.state_dims])
         state = self.update_states(init_state, self.env.reset())
         done = False
         cur_step = 0
@@ -166,7 +166,7 @@ class DQNAgent:
             # Get action and take step
             action = self.get_action(state)
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             # Update states with next_state
             next_state = self.update_states(state, next_state)
@@ -223,11 +223,11 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(history_length=args.history_length, state_dim=_num_inputs, action_dim=_num_actions)
+    buffer = ReplayBuffer(history_length=args.history_length, state_dim=_state_dims, action_dim=_num_actions)
 
     # Select network architecture
     model_func = drqn_discrete_network
@@ -241,7 +241,7 @@ def main() -> None:
                      optimizer=opt,
                      replay_buffer=buffer,
                      model_kwargs=dict(history_length=args.history_length,
-                                       num_inputs=_num_inputs,
+                                       state_dims=_state_dims,
                                        num_actions=_num_actions,
                                        num_hidden_layers=2,
                                        hidden_size=256),

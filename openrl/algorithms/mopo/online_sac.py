@@ -36,8 +36,8 @@ class SACAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.env_action_lb = self.env.action_space.low[0]
         self.env_action_ub = self.env.action_space.high[0]
 
@@ -45,16 +45,16 @@ class SACAgent:
         hidden_size = model_kwargs.get('hidden_size')
 
         # Actor and target actor models
-        self.actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                          num_actions=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.state_dims,
+                                          action_dims=self.action_dims,
                                           env_action_lb=self.env_action_lb,
                                           env_action_ub=self.env_action_ub,
                                           log_std_min=model_kwargs.get('log_std_min'),
                                           log_std_max=model_kwargs.get('log_std_max'),
                                           num_hidden_layers=num_hidden_layers,
                                           hidden_size=hidden_size)
-        self.target_actor_model = actor_model_fn(num_inputs=self.num_inputs,
-                                                 num_actions=self.num_actions,
+        self.target_actor_model = actor_model_fn(state_dims=self.state_dims,
+                                                 action_dims=self.action_dims,
                                                  env_action_lb=self.env_action_lb,
                                                  env_action_ub=self.env_action_ub,
                                                  log_std_min=model_kwargs.get('log_std_min'),
@@ -65,25 +65,25 @@ class SACAgent:
         self.actor_optimizer = actor_optimizer
 
         # Twin 1 - Critic and target critic models
-        self.critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions,
+        self.critic_model1 = critic_model_fn(state_dims=self.state_dims,
+                                             action_dims=self.action_dims,
                                              num_hidden_layers=num_hidden_layers,
                                              hidden_size=hidden_size)
         self.critic1_optimizer = critic_optimizers[0]
-        self.target_critic_model1 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions,
+        self.target_critic_model1 = critic_model_fn(state_dims=self.state_dims,
+                                                    action_dims=self.action_dims,
                                                     num_hidden_layers=num_hidden_layers,
                                                     hidden_size=hidden_size)
         self.target_critic_model1.set_weights(self.critic_model1.get_weights())
 
         # Twin 2 - Critic and target critic models
-        self.critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                             num_actions=self.num_actions,
+        self.critic_model2 = critic_model_fn(state_dims=self.state_dims,
+                                             action_dims=self.action_dims,
                                              num_hidden_layers=num_hidden_layers,
                                              hidden_size=hidden_size)
         self.critic2_optimizer = critic_optimizers[1]
-        self.target_critic_model2 = critic_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=self.num_actions,
+        self.target_critic_model2 = critic_model_fn(state_dims=self.state_dims,
+                                                    action_dims=self.action_dims,
                                                     num_hidden_layers=num_hidden_layers,
                                                     hidden_size=hidden_size)
         self.target_critic_model2.set_weights(self.critic_model2.get_weights())
@@ -172,7 +172,7 @@ class SACAgent:
             # Get action and take step
             action, _ = self.actor_model(state)
             next_state, reward, done, _ = self.env.step(action[0])
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             # Some bookkeeping
             ep_rewards += reward
@@ -255,7 +255,7 @@ class SACAgent:
                 self.env.render()
             action, _ = self.actor_model(state)
             state, reward, done, _ = self.env.step(action[0])
-            state = tf.reshape(state, [1, self.num_inputs])
+            state = tf.reshape(state, [1, self.state_dims])
             total_reward += reward
         return total_reward
 
@@ -266,7 +266,7 @@ class SACAgent:
         while not done:
             action, _ = self.actor_model(state)
             next_state, reward, done, _ = self.env.step(action[0])
-            next_state = tf.reshape(state, [1, self.num_inputs])
+            next_state = tf.reshape(state, [1, self.state_dims])
 
             transitions.append((state, action, reward, next_state, done))
 

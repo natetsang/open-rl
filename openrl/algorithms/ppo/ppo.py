@@ -117,17 +117,17 @@ class PPOAgent:
         # Env vars
         self.envs = environments
         self.eval_env = eval_env
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.env_action_lb = self.eval_env.action_space.low[0]
         self.env_action_ub = self.eval_env.action_space.high[0]
 
         # Model vars
-        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
-                                          num_actions=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.state_dims,
+                                          action_dims=self.action_dims,
                                           num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                           hidden_size=model_kwargs.get("hidden_size"))
-        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
+        self.critic_model = critic_model_fn(state_dims=self.state_dims,
                                             num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                             hidden_size=model_kwargs.get("hidden_size"))
 
@@ -246,7 +246,7 @@ class PPOAgent:
             done = False
             ep_rewards = 0
             while not done:
-                state = tf.reshape(state, [1, self.num_inputs])
+                state = tf.reshape(state, [1, self.state_dims])
                 mu, std = self.actor_model(state)
                 dist = tfd.MultivariateNormalDiag(loc=mu, scale_diag=std)
                 action = dist.mean()[0]
@@ -267,8 +267,8 @@ def main() -> None:
         eval_env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = eval_env.observation_space.shape[0]
-    _num_actions = eval_env.action_space.shape[0]
+    _state_dims = eval_env.observation_space.shape[0]
+    _action_dims = eval_env.action_space.shape[0]
 
     # Make multiple vectorized environments for synchronous training
     envs_list = [make_env(args.env) for i in range(args.num_envs)]
@@ -284,10 +284,10 @@ def main() -> None:
                      actor_optimizer=actor_opt,
                      critic_model_fn=critic_fc_network,
                      critic_optimizer=critic_opt,
-                     model_kwargs=dict(num_inputs=_num_inputs,
+                     model_kwargs=dict(state_dims=_state_dims,
                                        num_hidden_layers=2,
                                        hidden_size=256,
-                                       num_actions=_num_actions),
+                                       action_dims=_action_dims),
                      train_kwargs=None,
                      save_dir=args.model_checkpoint_dir)
 

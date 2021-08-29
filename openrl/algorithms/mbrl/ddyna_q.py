@@ -38,33 +38,34 @@ class DDynaQAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         num_hidden_layers = model_kwargs.get("num_hidden_layers")
         hidden_size = model_kwargs.get("hidden_size")
 
         # Q-network and target Q-network models
-        self.q_model = q_model_fn(num_inputs=self.num_inputs,
+        self.q_model = q_model_fn(state_dims=self.state_dims,
                                   num_actions=self.num_actions,
                                   num_hidden_layers=num_hidden_layers,
                                   hidden_size=hidden_size)
-        self.target_q_model = q_model_fn(num_inputs=self.num_inputs,
+        self.target_q_model = q_model_fn(state_dims=self.state_dims,
                                          num_actions=self.num_actions,
                                          num_hidden_layers=num_hidden_layers,
                                          hidden_size=hidden_size)
         self.q_optimizer = q_optimizer
 
         # Dynamics model
-        self.transition_model = transition_model_fn(num_inputs=self.num_inputs,
-                                                    num_actions=1,  # self.num_actions doesn't work b/c it outputs 2
+        self.transition_model = transition_model_fn(state_dims=self.state_dims,
+                                                    action_dims=self.action_dims,
                                                     num_hidden_layers=num_hidden_layers,
                                                     hidden_size=hidden_size)
         self.transition_optimizer = transition_optimizer
 
         # Reward model
-        self.reward_model = reward_model_fn(num_inputs=self.num_inputs,
-                                            num_actions=1,  # self.num_actions doesn't work b/c it outputs 2
+        self.reward_model = reward_model_fn(state_dims=self.state_dims,
+                                            action_dims=self.action_dims,
                                             num_hidden_layers=num_hidden_layers,
                                             hidden_size=hidden_size)
         self.reward_optimizer = reward_optimizer
@@ -164,7 +165,7 @@ class DDynaQAgent:
             # Get action and take step
             action = self.get_action(state)
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             # Some bookkeeping
             ep_rewards += reward
@@ -273,7 +274,7 @@ class DDynaQAgent:
             # Get action and take step
             action = self.get_action(state, decay=False)
             next_state = self.transition_model([state, tf.convert_to_tensor([action])])
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             reward = self.reward_model([state, tf.convert_to_tensor([action])])
 
@@ -307,7 +308,7 @@ class DDynaQAgent:
         states, _, _, _, dones = transitions_real
         actions = []
         for s in states:
-            a = self.get_action(tf.reshape(s, [1, self.num_inputs]), decay=False)
+            a = self.get_action(tf.reshape(s, [1, self.state_dims]), decay=False)
             actions.append(a)
         actions = np.array(actions)
 
@@ -399,13 +400,14 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
+    _action_dims = 1
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
     # Note that we could instead use 1 buffer for both >> "buffer_sim = buffer_real"
-    buffer_real = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
-    buffer_sim = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
+    buffer_real = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer_sim = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
 
     # Select action-value network architecture for policy
     q_model_func = dueling_dqn_fc_discrete_network if args.network_architecture == "dueling" else dqn_fc_discrete_network
@@ -430,7 +432,8 @@ def main() -> None:
                         reward_optimizer=reward_opt,
                         replay_buffer_real=buffer_real,
                         replay_buffer_sim=buffer_sim,
-                        model_kwargs=dict(num_inputs=_num_inputs,
+                        model_kwargs=dict(state_dims=_state_dims,
+                                          action_dims=_action_dims,
                                           num_actions=_num_actions,
                                           num_hidden_layers=2,
                                           hidden_size=256),

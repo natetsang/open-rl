@@ -30,7 +30,7 @@ class ImitationAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         num_hidden_layers = model_kwargs.get("num_hidden_layers")
@@ -44,7 +44,7 @@ class ImitationAgent:
         self.expert_data = ImitationAgent.load_expert_data(expert_data_path)
 
         # Actor model
-        self.model = model_fn(state_dims=self.num_inputs,
+        self.model = model_fn(state_dims=self.state_dims,
                               num_actions=self.num_actions,
                               num_hidden_layers=num_hidden_layers,
                               hidden_size=hidden_size)
@@ -87,7 +87,7 @@ class ImitationAgent:
             action_prob = self.model(state)
             action = np.random.choice(self.num_actions, p=np.squeeze(action_prob))
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             total_rewards += reward
 
@@ -205,11 +205,11 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
+    _state_dims = len(env.observation_space.high)
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_num_inputs, action_dim=1)
+    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=1)
 
     # Instantiate optimizer
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -218,7 +218,7 @@ def main() -> None:
     # TODO >> I think it's a bit cleaner to load the entire model instead of just the weights
     #   but I'm getting a TF error that I think was fixed in a later version. I should probably
     #   try updating the version and seeing if it fixes itself.
-    expert = actor_critic_fc_discrete_network(state_dims=_num_inputs,
+    expert = actor_critic_fc_discrete_network(state_dims=_state_dims,
                                               num_actions=_num_actions,
                                               num_hidden_layers=2,
                                               hidden_size=128)
@@ -232,7 +232,7 @@ def main() -> None:
                            run_dagger=args.run_dagger,
                            expert_policy=expert,
                            expert_data_path=args.expert_data,
-                           model_kwargs=dict(num_inputs=_num_inputs,
+                           model_kwargs=dict(state_dims=_state_dims,
                                              num_actions=_num_actions,
                                              num_hidden_layers=2,
                                              hidden_size=256),

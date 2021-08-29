@@ -52,17 +52,17 @@ class VPGAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
 
         # Model vars
-        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
-                                          action_dims=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.state_dims,
+                                          action_dims=self.action_dims,
                                           num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                           hidden_size=model_kwargs.get("hidden_size"))
         self.actor_optimizer = actor_optimizer
 
-        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
+        self.critic_model = critic_model_fn(state_dims=self.state_dims,
                                             num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                                             hidden_size=model_kwargs.get("hidden_size"))
         self.critic_optimizer = critic_optimizer
@@ -136,8 +136,8 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = env.observation_space.shape[0]
-    _num_actions = env.action_space.shape[0]
+    _state_dims = env.observation_space.shape[0]
+    _action_dims = env.action_space.shape[0]
 
     # Create agent
     actor_opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
@@ -148,10 +148,10 @@ def main() -> None:
                      critic_model_fn=critic_fc_network,
                      actor_optimizer=actor_opt,
                      critic_optimizer=critic_opt,
-                     model_kwargs=dict(num_inputs=_num_inputs,
+                     model_kwargs=dict(state_dims=_state_dims,
+                                       action_dims=_action_dims,
                                        num_hidden_layers=2,
-                                       hidden_size=128,
-                                       num_actions=_num_actions),
+                                       hidden_size=128),
                      save_dir=args.model_checkpoint_dir)
 
     # Run training

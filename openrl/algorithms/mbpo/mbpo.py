@@ -40,8 +40,8 @@ class MBPOAgent:
 
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.action_low = self.env.action_space.low
         self.action_high = self.env.action_space.high
 
@@ -75,8 +75,8 @@ class MBPOAgent:
         ensemble_size = model_kwargs.get("ensemble_size")
         dyn_models = []
         for i in range(ensemble_size):
-            model = model_class(ac_dim=self.num_actions,
-                                ob_dim=self.num_inputs,
+            model = model_class(ac_dim=self.action_dims,
+                                ob_dim=self.state_dims,
                                 n_layers=model_kwargs.get("num_hidden_layers"),
                                 hidden_size=model_kwargs.get("hidden_size"))
             dyn_models.append(model)
@@ -180,7 +180,7 @@ class MBPOAgent:
 
         action, _ = self.policy.actor_model(state)
         next_state, reward, done, _ = self.env.step(action[0])
-        next_state = tf.reshape(next_state, [1, self.num_inputs])
+        next_state = tf.reshape(next_state, [1, self.state_dims])
 
         if done or self.path_steps > self.max_ep_len:
             self.cur_state = None
@@ -198,7 +198,7 @@ class MBPOAgent:
             done = False
             ep_rewards = 0
             while not done:
-                state = tf.reshape(state, [1, self.num_inputs])
+                state = tf.reshape(state, [1, self.state_dims])
                 action, _ = self.policy.actor_model(state)
                 state, reward, done, _ = self.env.step(action[0])
 
@@ -251,12 +251,12 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
-    _num_actions = env.action_space.shape[0]
+    _state_dims = len(env.observation_space.high)
+    _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffers
-    buffer_env = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
-    buffer_model = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
+    buffer_env = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer_model = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
 
     actor_opt = tf.keras.optimizers.Adam(learning_rate=ACTOR_LEARNING_RATE)
     critic1_opt = tf.keras.optimizers.Adam(learning_rate=CRITIC_LEARNING_RATE)
@@ -271,14 +271,13 @@ def main() -> None:
                           critic_optimizers=(critic1_opt, critic2_opt),
                           alpha_optimizer=alpha_opt,
                           replay_buffer=buffer_model,
-                          model_kwargs=dict(num_inputs=_num_inputs,
-                                            num_actions=_num_actions,
+                          model_kwargs=dict(state_dims=_state_dims,
+                                            action_dims=_action_dims,
                                             num_hidden_layers=2,
                                             hidden_size=256,
                                             log_std_min=LOG_STD_MIN,
                                             log_std_max=LOG_STD_MAX),
                           train_kwargs=dict(policy_update_freq=1,  # 2 for vanilla SAC
-
                                             train_batch_size=args.policy_train_batch_size),
                           save_dir="")
 
@@ -287,8 +286,8 @@ def main() -> None:
                       policy=sac_policy,
                       model_class=FFModel,
                       replay_buffer=buffer_env,
-                      model_kwargs=dict(num_inputs=_num_inputs,
-                                        num_actions=_num_actions,
+                      model_kwargs=dict(state_dims=_state_dims,
+                                        action_dims=_action_dims,
                                         num_hidden_layers=2,
                                         hidden_size=256,
                                         ensemble_size=args.ensemble_size),

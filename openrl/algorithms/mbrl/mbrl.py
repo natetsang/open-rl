@@ -29,8 +29,8 @@ class MBAgent:
 
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.action_low = self.env.action_space.low
         self.action_high = self.env.action_space.high
 
@@ -61,8 +61,8 @@ class MBAgent:
         ensemble_size = model_kwargs.get("ensemble_size")
         dyn_models = []
         for i in range(ensemble_size):
-            model = model_class(ac_dim=self.num_actions,
-                                ob_dim=self.num_inputs,
+            model = model_class(ac_dim=self.action_dims,
+                                ob_dim=self.state_dims,
                                 n_layers=model_kwargs.get("num_hidden_layers"),
                                 hidden_size=model_kwargs.get("hidden_size"))
             dyn_models.append(model)
@@ -80,7 +80,7 @@ class MBAgent:
         :return: `num_sequences` random action sequences, each `horizon` long
         """
         random_action_sequences = self.action_low + np.random.random(
-            (num_sequences, horizon, self.num_actions)) * (self.action_high - self.action_low)
+            (num_sequences, horizon, self.action_dims)) * (self.action_high - self.action_low)
         return random_action_sequences
 
     def get_action(self, state: np.ndarray, random: bool) -> np.ndarray:
@@ -148,7 +148,7 @@ class MBAgent:
         :return: numpy array with the sum of rewards for each action sequence. The array should have shape [N].
         """
         # initialize arrays
-        pred_obs = np.zeros((self.num_sequences, self.horizon, self.num_inputs))
+        pred_obs = np.zeros((self.num_sequences, self.horizon, self.state_dims))
         rewards = np.zeros((self.num_sequences, self.horizon))
 
         # Use obs as the initial state for all N action sequences. Thus, all sequences start with the same state
@@ -188,7 +188,7 @@ class MBAgent:
             action = self.get_action(state, random=random)
             action = action[0]
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             total_rewards += reward
 
@@ -314,18 +314,18 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = len(env.observation_space.high)
-    _num_actions = env.action_space.shape[0]
+    _state_dims = len(env.observation_space.high)
+    _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_num_inputs, action_dim=_num_actions)
+    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
 
     # Create agent
     agent = MBAgent(environment=env,
                     model_class=FFModel,
                     replay_buffer=buffer,
-                    model_kwargs=dict(num_inputs=_num_inputs,
-                                      num_actions=_num_actions,
+                    model_kwargs=dict(state_dims=_state_dims,
+                                      action_dims=_action_dims,
                                       num_hidden_layers=2,
                                       hidden_size=256,
                                       ensemble_size=args.ensemble_size),

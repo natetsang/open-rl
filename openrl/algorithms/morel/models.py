@@ -4,8 +4,8 @@ from .utils import normalize, unnormalize
 import numpy as np
 
 
-def fc_discrete_network(num_inputs: int,
-                        num_actions: int,
+def fc_discrete_network(state_dims: int,
+                        action_dims: int,
                         num_hidden_layers: int,
                         hidden_size: int) -> tf.keras.Model:
     """
@@ -13,28 +13,28 @@ def fc_discrete_network(num_inputs: int,
     Output the predicted normalized delta between the next state s' and the current state s.
     """
     # Get state inputs and pass through one hidden layer
-    state_inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    action_inputs = layers.Input(shape=(num_actions,), name="input_action_layer")
+    state_inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
+    action_inputs = layers.Input(shape=(action_dims,), name="input_action_layer")
     inputs_concat = layers.Concatenate(name="concatenated_layer")([state_inputs, action_inputs])
 
     # Create shared hidden layers
     hidden = inputs_concat
     for i in range(num_hidden_layers):
         hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
-    next_state_outputs = layers.Dense(num_inputs, name="output_layer")(hidden)
+    next_state_outputs = layers.Dense(state_dims, name="output_layer")(hidden)
 
     model = tf.keras.Model(inputs=[state_inputs, action_inputs], outputs=next_state_outputs)
     return model
 
 
-def fc_reward_network(num_inputs: int,
-                      action_dim: int,
+def fc_reward_network(state_dims: int,
+                      action_dims: int,
                       num_hidden_layers: int,
                       hidden_size: int) -> tf.keras.Model:
 
     # Get state inputs and pass through one hidden layer
-    state_inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    action_inputs = layers.Input(shape=(action_dim,), name="input_action_layer")
+    state_inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
+    action_inputs = layers.Input(shape=(action_dims,), name="input_action_layer")
     inputs_concat = layers.Concatenate(name="concatenated_layer")([state_inputs, action_inputs])
 
     # Create shared hidden layers
@@ -47,21 +47,21 @@ def fc_reward_network(num_inputs: int,
     return model
 
 
-def actor_critic_fc_discrete_network(num_inputs: int,
+def actor_critic_fc_discrete_network(state_dims: int,
+                                     num_actions: int,
                                      num_hidden_layers: int,
-                                     hidden_size: int,
-                                     num_actions: int) -> tf.keras.Model:
+                                     hidden_size: int) -> tf.keras.Model:
     """
     Creates actor-critic model. This model is fully connected, takes in the state as input
     and outputs both the probability of taking each discrete action (i.e. actor) and the value (i.e. critic).
 
-    :param num_inputs: The dimensionality of the observed state
+    :param state_dims: The dimensionality of the observed state
+    :param num_actions: The dimensionality of the action space
     :param num_hidden_layers: The number of hidden layers in the fully-connected model
     :param hidden_size: The number of neurons in each hidden layer (note that all hidden layers have same number)
-    :param num_actions: The dimensionality of the action space
     :return: tf.keras.Model!
     """
-    inputs = layers.Input(shape=(num_inputs,), name="input_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_layer")
 
     # Create shared hidden layers
     hidden = inputs
@@ -82,8 +82,8 @@ class FFModel:
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-        self.delta_network = fc_discrete_network(num_inputs=ob_dim,
-                                                 num_actions=ac_dim,
+        self.delta_network = fc_discrete_network(state_dims=ob_dim,
+                                                 action_dims=ac_dim,
                                                  num_hidden_layers=n_layers,
                                                  hidden_size=hidden_size)
         self.trainable_variables = self.delta_network.trainable_variables
@@ -131,7 +131,7 @@ class FFModel:
         return tf.reduce_mean(tf.square(targets - delta_pred_normalized))
 
 
-def dqn_fc_discrete_network(num_inputs: int,
+def dqn_fc_discrete_network(state_dims: int,
                             num_actions: int,
                             num_hidden_layers: int,
                             hidden_size: int) -> tf.keras.Model:
@@ -140,7 +140,7 @@ def dqn_fc_discrete_network(num_inputs: int,
     This model is fully connected and takes in both the state and outputs one Q-value per action
     as input. It outputs the Q-value.
 
-    :param num_inputs: The dimensionality of the observed state
+    :param state_dims: The dimensionality of the observed state
     :param num_actions: The dimensionality of the action space
     :param num_hidden_layers: The number of hidden layers in the network
     :param hidden_size: The number of neurons for each layer. Note that all layers have
@@ -148,7 +148,7 @@ def dqn_fc_discrete_network(num_inputs: int,
     :return: tf.keras.Model!
     """
     # Get state inputs and pass through one hidden layer
-    inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
+    inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
 
     # Create shared hidden layers
     hidden = inputs

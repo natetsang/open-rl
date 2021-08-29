@@ -8,7 +8,6 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import dqn_fc_discrete_network
 from .utils import ReplayBuffer, plot_training_results
 
 
@@ -32,18 +31,18 @@ class DQNAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
+        self.state_dims = model_kwargs.get('state_dims')
         self.num_actions = model_kwargs.get('num_actions')
 
         num_hidden_layers = model_kwargs.get("num_hidden_layers")
         hidden_size = model_kwargs.get("hidden_size")
 
         # Actor and target actor models
-        self.model = model_fn(num_inputs=self.num_inputs,
+        self.model = model_fn(state_dims=self.state_dims,
                               num_actions=self.num_actions,
                               num_hidden_layers=num_hidden_layers,
                               hidden_size=hidden_size)
-        self.target_model = model_fn(num_inputs=self.num_inputs,
+        self.target_model = model_fn(state_dims=self.state_dims,
                                      num_actions=self.num_actions,
                                      num_hidden_layers=num_hidden_layers,
                                      hidden_size=hidden_size)
@@ -129,7 +128,7 @@ class DQNAgent:
             # Get action and take step
             action = self.get_action(state)
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             # Some bookkeeping
             ep_rewards += reward

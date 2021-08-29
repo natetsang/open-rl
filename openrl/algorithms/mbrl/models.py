@@ -4,24 +4,24 @@ from .utils import normalize, unnormalize
 import numpy as np
 
 
-def fc_discrete_network(num_inputs: int,
-                        num_actions: int,
-                        num_hidden_layers: int,
-                        hidden_size: int) -> tf.keras.Model:
+def fc_network(state_dims: int,
+               action_dims: int,
+               num_hidden_layers: int,
+               hidden_size: int) -> tf.keras.Model:
     """
     Input both normalized state and normalized action.
     Output the predicted normalized delta between the next state s' and the current state s.
     """
     # Get state inputs and pass through one hidden layer
-    state_inputs = layers.Input(shape=(num_inputs,), name="input_state_layer")
-    action_inputs = layers.Input(shape=(num_actions,), name="input_action_layer")
+    state_inputs = layers.Input(shape=(state_dims,), name="input_state_layer")
+    action_inputs = layers.Input(shape=(action_dims,), name="input_action_layer")
     inputs_concat = layers.Concatenate(name="concatenated_layer")([state_inputs, action_inputs])
 
     # Create shared hidden layers
     hidden = inputs_concat
     for i in range(num_hidden_layers):
         hidden = layers.Dense(hidden_size, activation="relu", name=f"hidden_layer{i}")(hidden)
-    next_state_outputs = layers.Dense(num_inputs, name="output_layer")(hidden)
+    next_state_outputs = layers.Dense(state_dims, name="output_layer")(hidden)
 
     model = tf.keras.Model(inputs=[state_inputs, action_inputs], outputs=next_state_outputs)
     return model
@@ -34,10 +34,10 @@ class FFModel:
         self.n_layers = n_layers
         self.hidden_size = hidden_size
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
-        self.delta_network = fc_discrete_network(num_inputs=ob_dim,
-                                                 num_actions=ac_dim,
-                                                 num_hidden_layers=n_layers,
-                                                 hidden_size=hidden_size)
+        self.delta_network = fc_network(state_dims=ob_dim,
+                                        action_dims=ac_dim,
+                                        num_hidden_layers=n_layers,
+                                        hidden_size=hidden_size)
         self.trainable_variables = self.delta_network.trainable_variables
 
     def _forward_pass(self, obs: np.ndarray, acs: np.ndarray, data_statistics: dict) -> np.ndarray:

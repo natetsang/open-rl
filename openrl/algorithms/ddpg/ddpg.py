@@ -26,28 +26,28 @@ class DDPGAgent:
                  save_dir: str = None) -> None:
         # Env vars
         self.env = environment
-        self.num_inputs = model_kwargs.get('num_inputs')
-        self.num_actions = model_kwargs.get('num_actions')
+        self.state_dims = model_kwargs.get('state_dims')
+        self.action_dims = model_kwargs.get('action_dims')
         self.env_action_lb = self.env.action_space.low[0]
         self.env_action_ub = self.env.action_space.high[0]
 
         # Actor and target actor models
-        self.actor_model = actor_model_fn(state_dims=self.num_inputs,
-                                          action_dims=self.num_actions,
+        self.actor_model = actor_model_fn(state_dims=self.state_dims,
+                                          action_dims=self.action_dims,
                                           env_action_lb=self.env_action_lb,
                                           env_action_ub=self.env_action_ub)
-        self.target_actor_model = actor_model_fn(state_dims=self.num_inputs,
-                                                 action_dims=self.num_actions,
+        self.target_actor_model = actor_model_fn(state_dims=self.state_dims,
+                                                 action_dims=self.action_dims,
                                                  env_action_lb=self.env_action_lb,
                                                  env_action_ub=self.env_action_ub)
         self.target_actor_model.set_weights(self.actor_model.get_weights())
         self.actor_optimizer = actor_optimizer
 
         # Critic and target critic models
-        self.critic_model = critic_model_fn(state_dims=self.num_inputs,
-                                            action_dims=self.num_actions)
-        self.target_critic_model = critic_model_fn(state_dims=self.num_inputs,
-                                                   action_dims=self.num_actions)
+        self.critic_model = critic_model_fn(state_dims=self.state_dims,
+                                            action_dims=self.action_dims)
+        self.target_critic_model = critic_model_fn(state_dims=self.state_dims,
+                                                   action_dims=self.action_dims)
         self.target_critic_model.set_weights(self.critic_model.get_weights())
         self.critic_optimizer = critic_optimizer
 
@@ -114,7 +114,7 @@ class DDPGAgent:
 
             # Take step
             next_state, reward, done, _ = self.env.step(action)
-            next_state = tf.reshape(next_state, [1, self.num_inputs])
+            next_state = tf.reshape(next_state, [1, self.state_dims])
 
             # Some bookkeeping
             ep_rewards += reward[0]
@@ -164,8 +164,8 @@ def main() -> None:
         env.seed(args.seed)
 
     # Create helper vars for model creation
-    _num_inputs = env.observation_space.shape[0]
-    _num_actions = env.action_space.shape[0]
+    _state_dims = env.observation_space.shape[0]
+    _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffer
     buffer = ReplayBuffer()
@@ -184,8 +184,8 @@ def main() -> None:
                       critic_model_fn=ddpg_critic_fc_continuous_network,
                       critic_optimizer=critic_opt,
                       replay_buffer=buffer,
-                      model_kwargs=dict(num_inputs=_num_inputs,
-                                        num_actions=_num_actions),
+                      model_kwargs=dict(state_dims=_state_dims,
+                                        action_dims=_action_dims),
                       save_dir=args.model_checkpoint_dir)
 
     # Run training
