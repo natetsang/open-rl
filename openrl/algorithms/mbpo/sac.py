@@ -5,7 +5,7 @@ from typing import Union, Callable, Tuple
 from .utils import ReplayBuffer
 import tensorflow_probability as tfp
 tfd = tfp.distributions
-tf.keras.backend.set_floatx('float32')
+
 
 # Set up
 GAMMA = 0.99

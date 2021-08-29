@@ -6,7 +6,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from .models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
 from .utils import ReplayBuffer, OUActionNoise, plot_training_results
-tf.keras.backend.set_floatx('float32')
+
 
 # Set up
 GAMMA = 0.99

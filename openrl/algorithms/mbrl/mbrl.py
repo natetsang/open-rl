@@ -18,8 +18,6 @@ register(
     max_episode_steps=500,
 )
 
-tf.keras.backend.set_floatx('float32')
-
 
 class MBAgent:
     def __init__(self,

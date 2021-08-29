@@ -11,7 +11,6 @@ from typing import Union, Callable, Tuple
 from .models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
 from .utils import ReplayBuffer, plot_training_results
 
-tf.keras.backend.set_floatx('float32')
 
 # Set up
 GAMMA = 0.99

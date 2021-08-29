@@ -17,7 +17,7 @@ from typing import Union, Callable, Tuple, Type, List, Dict
 from dqn import DQNAgent
 from .models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
 from .utils import ReplayBuffer, plot_training_results
-tf.keras.backend.set_floatx('float32')
+
 
 # Set up constants
 GAMMA = 0.99

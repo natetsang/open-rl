@@ -25,7 +25,6 @@ register(
     max_episode_steps=500,
 )
 
-tf.keras.backend.set_floatx('float32')
 
 # Set up
 GAMMA = 0.99
