@@ -17,56 +17,72 @@ It's also hard to find clear implementations of foundational algorithms like mul
 It's for these reasons why `open-rl` was created! Happy learning!
 
 ## Algorithms
-In this repo you will find implementations for the following algorithms.  
+In this repo you will find implementations for the following algorithms. 
 
 ### Model free learning
 #### Policy-based methods
-- [x] REINFORCE
-- [x] REINFORCE w/ baseline
-- [x] VPG
+|                           | Discrete              | Continuous                |
+| ---                       | :---:                 | :---:                     |
+| REINFORCE                 | :heavy_check_mark:    | :heavy_multiplication_x:  |
+| REINFORCE w/ baseline     | :heavy_check_mark:    | :heavy_multiplication_x:  |
+| VPG                       | :heavy_check_mark:    | :heavy_check_mark:        |
 
 #### Value-based methods
-- [x] DQN
-- [x] Double DQN
-- [x] Dueling DQN 
-- [x] DRQN (for POMDPs)
+|                           | Discrete              | Continuous                |
+| ---                       | :---:                 | :---:                     |
+| DQN                       | :heavy_check_mark:    | :heavy_multiplication_x:  |
+| Double DQN                | :heavy_check_mark:    | :heavy_multiplication_x:  |
+| Dueling DQN               | :heavy_check_mark:    | :heavy_multiplication_x:  |
+| DRQN (for POMDPs)         | :heavy_check_mark:    | :heavy_multiplication_x:  |
 
 #### Actor-critic methods
-- [x] A2C
-- [x] A3C
-- [x] DDPG
-- [x] TD3
-- [x] SAC
-- [x] PPO
+|       | Discrete                  | Continuous                |
+| ---   | :---:                     | :---:                     |
+| A2C   | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| A3C   | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| DDPG  | :heavy_multiplication_x:  | :heavy_check_mark:        |
+| TD3   | :heavy_multiplication_x:  | :heavy_check_mark:        |
+| SAC   | :heavy_multiplication_x:  | :heavy_check_mark:        |
+| PPO   | :heavy_multiplication_x:  | :heavy_check_mark:        |
 
 ### Bandits
 #### Multi-armed bandits
-- [x] Pure Exploration
-- [x] Epsilon Greedy
-- [x] Thompson Sampling - Bernoulli
-- [x] Thompson Sampling - Gaussian
-- [x] UCB
+|                               | Discrete           | Continuous                |
+| ---                           | :---:              | :---:                     |
+| Pure Exploration              | :heavy_check_mark: | :heavy_multiplication_x:  |
+| Epsilon Greedy                | :heavy_check_mark: | :heavy_multiplication_x:  |
+| Thompson Sampling - Bernoulli | :heavy_check_mark: | :heavy_multiplication_x:  |
+| Thompson Sampling - Gaussian  | :heavy_check_mark: | :heavy_multiplication_x:  |
+| Upper Confidence Bounds (UCB) | :heavy_check_mark: | :heavy_multiplication_x:  |
 
 #### Contextual bandits
-- [x] Linear UCB
-- [ ] Linear Thompson Sampling 
-- [x] Neural-network approach
+|                          | Discrete                 | Continuous                |
+| ---                      | :---:                    | :---:                     |
+| Linear UCB               | :heavy_check_mark:       | :heavy_multiplication_x:  |
+| Linear Thompson Sampling | :heavy_multiplication_x: | :heavy_multiplication_x:  |
+| Neural-network approach  | :heavy_check_mark:       | :heavy_multiplication_x:  |
 
 ### Model-based learning
-- [x] Dyna-Q
-- [x] Deep Dyna-Q
-- [x] Monte-Carlo Tree Search (MCTS)
-- [x] MB + model predictive control
-- [x] Model-based Policy Optimization (MBPO)
+|                                       | Discrete                  | Continuous                |
+| ---                                   | :---:                     | :---:                     |
+| Dyna-Q                                | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| Deep Dyna-Q                           | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| Monte-Carlo Tree Search (MCTS)        | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| MB + Model Predictive Control         | :heavy_multiplication_x:  | :heavy_check_mark:        |
+| Model-Based Policy Opitmization (MBPO)| :heavy_multiplication_x:  | :heavy_check_mark:        |
 
 ### Offline (batch) learning
-- [x] Conservative Q-learning (CQL)
-- [x] MOReL
-- [x] Model-based Offline Policy Optimization (MOPO)
+|                                                    | Discrete                  | Continuous                |
+| ---                                                | :---:                     | :---:                     |
+| Conservative Q-learning (CQL)                      | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| Model-Based Offline Reinforcement Learning (MOReL) | :heavy_check_mark:        | :heavy_multiplication_x:  |
+| Model-Based Offline Policy Optimization (MOPO)     | :heavy_multiplication_x:  | :heavy_check_mark:        |
 
 ### Other
-- [x] Behavioral Cloning
-- [x] Imitation Learning
+|                    | Discrete           | Continuous                |
+| ---                | :---:              | :---:                     |
+| Behavioral Cloning | :heavy_check_mark: | :heavy_multiplication_x:  |
+| Imitation Learning | :heavy_check_mark: | :heavy_multiplication_x:  |
 
 ## Installation
 - Make sure you have Python 3.7 or higher installed
@@ -114,5 +130,5 @@ This repo would not be possible without the following (tremendous) resources, wh
 learning RL. I highly recommend going through these to learn more.
 * [CS285](http://rail.eecs.berkeley.edu/deeprlcourse/) @ UC Berkeley - taught by Sergey Levine
 * [Grokking Deep RL book](https://www.manning.com/books/grokking-deep-reinforcement-learning) by [@mimoralea](https://github.com/mimoralea/gdrl)
-* [more to come]
+* More to be added soon!
 
