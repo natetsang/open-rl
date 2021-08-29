@@ -1,45 +1,75 @@
-* Currently, I include the _num_inputs and _num_actions outside of the Agent creation. Instead, why
-don't I do that inside the Agent!
-* Once I get continuous working, create Agent variable for `is_discrete_env`
-* Point everything to self.env instead of env
-* Refactor models.py and utils.py so that they are at a higher directory so I don't have repeated code
-* Add critic, actor and total loss to plots
-* Possibly add connection to tensorboard
-* Fix plots! There are still several issues
-* Right now I don't use max_step at all, even though it's in the argument parser
-* Clarify difference between episode and epochs
-* Make all methods save_models() instead of save_model()...It's okay if there's only 1 model to save, but
-this will be more consistent
-* maybe change num_inputs to num_states
-* change running_reward to be ep_rew if it's the first episode
-* either use tf.keras.backend.set_floatx('float32') on all scripts or remove from all
-* Dockerize
-* Remove "discrete" and "continuous" from the name of the critic methods. It's only the policy
-that is discrete or continuous. The value function remains the same for both cases
-* In the actor/critic functions, "num_inputs" is confusing, especially when the model inputs both
-states and actions. Change "num_inputs" to "num_states".
+
+
+Environment properties:
+* Either use configure_env() in vpg/utils.py or don't use it in all algos
+* Create Agent variable for `is_discrete_env`. Add logic using this variable
+* Dimensions in replay buffer are hard-coded!! Change this, especially in DDPG
+* Rewards seem to be ep_rewards += reward for discrete and ep_rewards += reward[0] for continuous. Make sure to handle
+each case
+* In argparse, require env_name to be one of several choices.... parser.add_argument('env', choices=('CartPole-v0', ...)
+
+Refactoring:
+* Export some utils.py logic to another folder (e.g. ReplayBuffer, other functions)
+
+Test agent:
+* Add test_agent() to DQN, DDQN, DRQN, DDDQN, etc
+* Add/fix test_agent() in DDPG, TD3, SAC! They should exclude noise!
+* Can we put this into a BaseAgent class instead?
+
+
+Saving:
 * Fix save_dir and load_dir to only work if we pass in the save_dir param
 * Test saving and loading of models
 * Fix saving of results.png. Why is it blank?
-* Add/fix test_agent() in DDPG, TD3, SAC! They should exclude noise!
-* Add self.total_steps as a variable for each Agent class
-* Add self.cur_episode as a variable for each Agent classl I currently do this for DDPG/TD3/SAC
-* Rewards seem to be ep_rewards += reward for discrete and ep_rewards += reward[0] for continuous. Make sure to handle
-each case
-* Dimensions in replay buffer are hard-coded!! Change this.
-* For the fc_models, instead of taking "num_actions", take "action_dim"
-* For Discrete(X) action spaces, action_dim = 1 always! Fix this in the fc_models and in the buffers, where I hard code
-* In argparse, require env_name to be one of several choices.... parser.add_argument('env', choices=('CartPole-v0', ...)
-* I think this is wrong on every single one:::         if np.mean(latest_mean_rewards > best_mean_rewards):
--- It should just be:::: if latest_mean_rewards > best_mean_rewards .... We don't need the np.mean at all
-* Add test_agent() to DQN, DDQN, DRQN, DDDQN, etc .... Actually, create a BaseAgent class and add test_agent() there
-and extend
-* I think test_agent() has env.step() instead of self.env.step()!
+* Can we put this into a BaseAgent class instead?
+* Make all methods save_models() instead of save_model()...It's okay if there's only 1 model to save, but
+this will be more consistent
 * Fix agents.save() for all VPG. We get an error!
+
+
+Plotting:
+* Fix plots! There are still several issues
+* No consistency in plotting!
+
+
+Other:
+* Add critic, actor and total loss to plots
+* Possibly add connection to tensorboard
+* Right now I don't use max_step at all, even though it's in the argument parser
+
+* change running_reward to be ep_rew if it's the first episode
+* Figure out what to do with CONSTANTS. Do we want them? Should everything just be an argument?
+
+* Add self.total_steps as a variable for each Agent class
+* Add self.cur_episode as a variable for each Agent class I currently do this for DDPG/TD3/SAC
+
 * Add "required=True" to the parser, also, use "action=store_true" where relevant
 * Think about whether it's cleaner to convert args to params using params = vars(args) after doing args.parser.parse_args()
-* (Done) Add docstring to Replay Buffer
-* (Done) Fix typehints for Replay Buffer
-* (Done) The buffer should include "Done"
-* (Done) Fix TD3 (and probably DDPG / SAC) targets. They should include "done" (i.e. 1-d) when determining
+* Clarify difference between episode and epochs
+
+Round 4:
+* Dockerize
+
+
+----------------------------------------------------------------------------------------------------------
+--------------------------------------------------DONE----------------------------------------------------
+----------------------------------------------------------------------------------------------------------
+* For Discrete(X) action spaces, action_dim = 1 always! Fix this in the fc_models and in the buffers, where I hard code
+* For the fc_models, instead of taking "num_actions", take "action_dim"
+* In the actor/critic functions, "num_inputs" is confusing, especially when the model inputs both
+states and actions. Change "num_inputs" to "state_dims".
+* either use tf.keras.backend.set_floatx('float32') on all scripts or remove from all
+* Refactor models.py and utils.py so that they are at a higher directory so I don't have repeated code
+* I think this is wrong on every single one ==>
+-- if np.mean(latest_mean_rewards > best_mean_rewards):
+-- It should just be => if latest_mean_rewards > best_mean_rewards .... We don't need the np.mean
+* Create main() method
+* Point everything to self.env instead of env
+* I think test_agent() has env.step() instead of self.env.step()!
+* Remove "discrete" and "continuous" from the name of the critic methods. It's only the policy
+that is discrete or continuous. The value function remains the same for both cases
+* Add docstring to Replay Buffer
+* Fix typehints for Replay Buffer
+* The buffer should include "Done"
+* Fix TD3 (and probably DDPG / SAC) targets. They should include "done" (i.e. 1-d) when determining
  whether or not to bootstrap!!
