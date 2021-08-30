@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras import layers
 import tensorflow_probability as tfp
-from .utils import normalize, unnormalize
+from utils.utils import normalize, unnormalize
 import numpy as np
 from typing import Union, Tuple
 tfd = tfp.distributions

@@ -16,7 +16,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple, Type, List, Dict
 from dqn import DQNAgent
 from .models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 
 
 # Set up constants
@@ -367,7 +367,7 @@ def main() -> None:
     _action_dims = 1 if _is_discrete_action else env.action_space.shape[0]
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     # Select network architecture
     online_model_func = dqn_fc_discrete_network
@@ -398,7 +398,7 @@ def main() -> None:
     for e in range(args.online_epochs):
         _, _ = online_agent.train_episode()
 
-    print("Offline dataset size: ", buffer.size)
+    print("Offline dataset size: ", len(buffer.size))
 
     print(f"Starting training (beta = {args.usad_threshold_beta})")
     # Create offline agent

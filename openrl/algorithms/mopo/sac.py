@@ -2,9 +2,8 @@ import gym
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .utils import ReplayBuffer
+from utils.utils import ReplayBuffer
 import tensorflow_probability as tfp
-tfd = tfp.distributions
 
 
 # Set up

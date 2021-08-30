@@ -7,7 +7,8 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 from typing import Callable, Union, Tuple, List
 from models.models import actor_fc_discrete_network, actor_critic_fc_discrete_network
-from .utils import ReplayBuffer, plot_training_results
+from .utils import plot_training_results
+from utils.utils import ReplayBuffer
 tfd = tfp.distributions
 
 
@@ -206,10 +207,11 @@ def main() -> None:
 
     # Create helper vars for model creation
     _state_dims = len(env.observation_space.high)
+    _action_dims = 1
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=1)
+    buffer = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     # Instantiate optimizer
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)

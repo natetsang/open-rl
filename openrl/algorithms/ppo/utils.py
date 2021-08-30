@@ -3,7 +3,7 @@ from typing import Tuple, Union, List
 import matplotlib.pyplot as plt
 
 
-class PPOBuffer:
+class PPOReplayBuffer:
     def __init__(self, state_size, action_size, capacity, batch_size=64):
         self.state_size = state_size
         self.action_size = action_size

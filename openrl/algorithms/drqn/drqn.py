@@ -224,10 +224,11 @@ def main() -> None:
 
     # Create helper vars for model creation
     _state_dims = len(env.observation_space.high)
+    _action_dims = 1
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(history_length=args.history_length, state_dim=_state_dims, action_dim=_num_actions)
+    buffer = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims, history_length=args.history_length)
 
     # Select network architecture
     model_func = drqn_discrete_network

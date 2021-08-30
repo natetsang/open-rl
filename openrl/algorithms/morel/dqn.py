@@ -3,12 +3,10 @@ DQN that can either use the vanilla DQN network or a dueling DQN network
 """
 
 import gym
-import time
-import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 
 
 # Set up

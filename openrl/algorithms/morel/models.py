@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import layers
-from .utils import normalize, unnormalize
+from utils.utils import normalize, unnormalize
 import numpy as np
 
 

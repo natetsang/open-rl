@@ -1,11 +1,8 @@
 import gym
-import time
-import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import sac_actor_fc_continuous_network, critic_fc_network
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 import tensorflow_probability as tfp
 tfd = tfp.distributions
 

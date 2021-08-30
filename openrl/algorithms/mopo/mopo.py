@@ -14,7 +14,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from .models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 from env_utils import termination_fn, reward_fn
 from sac import SACAgent
 from online_sac import SACAgent as OnlineSACAgent
@@ -260,8 +260,8 @@ def main() -> None:
     _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffers
-    buffer_env = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
-    buffer_model = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer_env = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
+    buffer_model = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     # Instantiate optimizers
     actor_opt = tf.keras.optimizers.Adam(learning_rate=ACTOR_LEARNING_RATE)
@@ -294,7 +294,7 @@ def main() -> None:
     while len(online_agent.replay_buffer) < args.replay_buffer_env_size:
         online_agent.run_agent_and_add_to_buffer()
 
-    print("Offline dataset size: ", buffer_env.size)
+    print("Offline dataset size: ", len(buffer_env))
 
     # Instantiate optimizers
     actor_opt = tf.keras.optimizers.Adam(learning_rate=ACTOR_LEARNING_RATE)
@@ -348,7 +348,7 @@ def main() -> None:
           f"rollout_length: {args.rollout_length}")
     for e in range(args.offline_epochs):
         # Run one episode
-        dmodel_size = offline_agent.policy.replay_buffer.size
+        dmodel_size = len(offline_agent.policy.replay_buffer)
         offline_agent.train_episode()
 
         eval_ep_rew = offline_agent.test_agent()

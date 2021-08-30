@@ -17,7 +17,7 @@ from copy import deepcopy
 from typing import Union, Callable, Tuple
 from dqn import DQNAgent
 from .models import dqn_fc_discrete_network
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 
 
 # Set up
@@ -192,7 +192,7 @@ def main() -> None:
     _num_actions = env.action_space.n
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     # Select network architecture
     model_func = dqn_fc_discrete_network
@@ -218,7 +218,7 @@ def main() -> None:
     for e in range(args.online_epochs):
         _, _ = online_agent.train_episode()
 
-    print("BUFFER SIZE: ", buffer.size)
+    print("BUFFER SIZE: ", len(buffer))
     # Create offline agent
     offline_agent = CQLAgent(environment=offline_env,
                              model_fn=model_func,

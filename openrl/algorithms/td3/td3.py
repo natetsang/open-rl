@@ -5,8 +5,8 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
 from .models import td3_actor_fc_continuous_network, td3_critic_fc_continuous_network
-from .utils import ReplayBuffer, plot_training_results
-
+from .utils import plot_training_results
+from utils.utils import ReplayBuffer
 
 # Set up
 GAMMA = 0.99
@@ -215,7 +215,7 @@ def main() -> None:
     _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffer
-    buffer = ReplayBuffer()
+    buffer = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     actor_opt = tf.keras.optimizers.Adam(learning_rate=ACTOR_LEARNING_RATE)
     critic_opt = tf.keras.optimizers.Adam(learning_rate=CRITIC_LEARNING_RATE)

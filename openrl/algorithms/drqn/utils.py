@@ -10,14 +10,15 @@ class ReplayBuffer:
     Initializes a simple FIFO Replay Buffer that can be used for storing transitions and sampling random
     transitions. Once the buffer is full, new transitions will overwrite the oldest transitions in the buffer.
     """
-    def __init__(self, history_length: int, state_dim: int, action_dim: int, capacity: int = 1000000, batch_size: int = 64) -> None:
+    def __init__(self, state_dims: int, action_dims: int, history_length: int, capacity: int = 1000000,
+                 batch_size: int = 64) -> None:
         self.capacity = capacity
         self.batch_size = batch_size
 
-        self.buffer_state = np.empty(shape=(capacity, history_length, state_dim))
-        self.buffer_action = np.empty(shape=(capacity, 1))
+        self.buffer_state = np.empty(shape=(capacity, history_length, state_dims))
+        self.buffer_action = np.empty(shape=(capacity, action_dims))
         self.buffer_reward = np.empty(shape=(capacity, 1))
-        self.buffer_next_state = np.empty(shape=(capacity, history_length, state_dim))
+        self.buffer_next_state = np.empty(shape=(capacity, history_length, state_dims))
         self.buffer_done = np.empty(shape=(capacity, 1))
 
         self.size = 0

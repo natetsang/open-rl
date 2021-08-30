@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from .models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
-from .utils import ReplayBuffer, plot_training_results
+from utils.utils import ReplayBuffer
 from .sac import SACAgent
 from gym.envs.registration import register
 register(
@@ -255,8 +255,8 @@ def main() -> None:
     _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffers
-    buffer_env = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
-    buffer_model = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer_env = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
+    buffer_model = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     actor_opt = tf.keras.optimizers.Adam(learning_rate=ACTOR_LEARNING_RATE)
     critic1_opt = tf.keras.optimizers.Adam(learning_rate=CRITIC_LEARNING_RATE)

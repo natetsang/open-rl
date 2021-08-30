@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from .models import FFModel
-from .utils import ReplayBuffer, plot_training_results
+from .utils import ReplayBufferWithNoise, plot_training_results
 
 from gym.envs.registration import register
 register(
@@ -23,7 +23,7 @@ class MBAgent:
     def __init__(self,
                  environment,
                  model_class: Type[FFModel],
-                 replay_buffer: ReplayBuffer,
+                 replay_buffer: ReplayBufferWithNoise,
                  model_kwargs: dict = None,
                  train_kwargs: dict = None) -> None:
 
@@ -318,7 +318,7 @@ def main() -> None:
     _action_dims = env.action_space.shape[0]
 
     # Create Replay Buffer
-    buffer = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer = ReplayBufferWithNoise(state_dims=_state_dims, action_dims=_action_dims)
 
     # Create agent
     agent = MBAgent(environment=env,

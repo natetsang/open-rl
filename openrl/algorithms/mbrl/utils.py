@@ -5,56 +5,48 @@ from typing import List, Tuple, Union
 import copy
 
 
-def normalize(data, mean, std, eps=1e-8):
-    return (data-mean)/(std+eps)
+def add_noise(input_data, noise_to_signal: int = 0.01) -> np.ndarray:
+    """
+    @source https://github.com/berkeleydeeprlcourse/homework_fall2020/blob/master/hw4/cs285/infrastructure/utils.
+    """
+    input_data = np.array(input_data)
+    noised_data = copy.deepcopy(input_data)  # (num data points, dim)
 
+    # Mean of data
+    mean_data = np.mean(noised_data, axis=0)
 
-def unnormalize(data, mean, std):
-    return data*std+mean
-
-
-def add_noise(data_inp, noiseToSignal=0.01):
-    """@source https://github.com/berkeleydeeprlcourse/homework_fall2020/blob/master/hw4/cs285/infrastructure/utils.py"""
-    data_inp = np.array(data_inp)
-    # print("DATA SHAPE:", np.shape(data_inp))
-    data = copy.deepcopy(data_inp) #(num data points, dim)
-
-    #mean of data
-    mean_data = np.mean(data, axis=0)
-
-    #if mean is 0,
-    #make it 0.001 to avoid 0 issues later for dividing by std
+    # If mean is 0, make it 0.001 to avoid 0 issues later for dividing by std
     mean_data[mean_data == 0] = 0.000001
 
-    #width of normal distribution to sample noise from
-    #larger magnitude number = could have larger magnitude noise
-    std_of_noise = mean_data * noiseToSignal
+    # Width of normal distribution to sample noise from larger magnitude number = could have larger magnitude noise
+    std_of_noise = mean_data * noise_to_signal
     for j in range(mean_data.shape[0]):
-        data[:, j] = np.copy(data[:, j] + np.random.normal(
-            0, np.absolute(std_of_noise[j]), (data.shape[0],)))
+        noised_data[:, j] = np.copy(noised_data[:, j] + np.random.normal(
+            0, np.absolute(std_of_noise[j]), (noised_data.shape[0],)))
 
-    return data
+    return noised_data
 
 
-class ReplayBuffer:
+class ReplayBufferWithNoise:
     """
     Initializes a simple FIFO Replay Buffer that can be used for storing transitions and sampling random
     transitions. Once the buffer is full, new transitions will overwrite the oldest transitions in the buffer.
     """
-    def __init__(self, state_dim: int, action_dim: int, capacity: int = 1000000) -> None:
+    def __init__(self, state_dims: int, action_dims: int, batch_size: int = 64, capacity: int = 1000000) -> None:
         self.capacity = capacity
+        self.batch_size = batch_size
 
-        self.buffer_state = np.empty(shape=(capacity, state_dim))
-        self.buffer_action = np.empty(shape=(capacity, action_dim))
+        self.buffer_state = np.empty(shape=(capacity, state_dims))
+        self.buffer_action = np.empty(shape=(capacity, action_dims))
         self.buffer_reward = np.empty(shape=(capacity, 1))
-        self.buffer_next_state = np.empty(shape=(capacity, state_dim))
+        self.buffer_next_state = np.empty(shape=(capacity, state_dims))
         self.buffer_done = np.empty(shape=(capacity, 1))
 
         self.data_statistics = None
-        self.size = 0
-        self.idx = 0
+        self._size = 0
+        self._idx = 0
 
-    def _store_transition(self, transition: Tuple) -> None:
+    def store_transition(self, transition: Tuple) -> None:
         """
         This stores a transition in the buffer. There transition is a
         tuple of (state, action, reward, next_state, done).
@@ -63,7 +55,7 @@ class ReplayBuffer:
         """
         state, action, reward, next_state, done = transition
         # This will make sure to overwrite the oldest transition if full
-        current_index = self.idx % self.capacity
+        current_index = self._idx % self.capacity
 
         # Store transition in buffer
         self.buffer_state[current_index] = state
@@ -73,9 +65,9 @@ class ReplayBuffer:
         self.buffer_done[current_index] = done
 
         # Increment counters
-        if self.size < self.capacity:
-            self.size += 1
-        self.idx += 1
+        if self._size < self.capacity:
+            self._size += 1
+        self._idx += 1
 
     def store_transitions_batch(self, batch: List[Tuple], noised: bool = False) -> None:
         """
@@ -99,22 +91,25 @@ class ReplayBuffer:
 
         transitions = zip(states, actions, rewards, next_states, dones)
         for t in transitions:
-            self._store_transition(t)
+            self.store_transition(t)
 
         # Update the statistics in the replay buffer!
-        self._update_data_statistics()
+        self.update_data_statistics()
 
-    def sample(self, batch_size: int) -> Union[Tuple, None]:
+    def sample(self, batch_size: int = None) -> Union[Tuple, None]:
         """
         Returns a batch_size of random transitions from the buffer. If there are less
         than batch_size transitions in the buffer, this returns None. Note that sampling
         does not remove the transitions from the buffer so they could be sampled again.
         """
+        if batch_size is None:
+            batch_size = self.batch_size
+
         # We can't sample if we don't have enough transitions
-        if self.size < batch_size:
+        if self._size < batch_size:
             return
 
-        idxs = np.random.choice(self.size, batch_size)
+        idxs = np.random.choice(self._size, batch_size)
 
         batch_state = self.buffer_state[idxs]
         batch_action = self.buffer_action[idxs]
@@ -124,8 +119,16 @@ class ReplayBuffer:
 
         return batch_state, batch_action, batch_reward, batch_next_state, batch_done
 
-    def _update_data_statistics(self) -> Union[dict, None]:
-        if self.size == 0:
+    def all(self) -> Union[Tuple, None]:
+        """Return all data"""
+        return (self.buffer_state[:self._size],
+                self.buffer_action[:self._size],
+                self.buffer_reward[:self._size],
+                self.buffer_next_state[:self._size],
+                self.buffer_done[:self._size])
+
+    def update_data_statistics(self) -> Union[dict, None]:
+        if self._size == 0:
             return None
 
         data_statistics = dict()
@@ -139,7 +142,7 @@ class ReplayBuffer:
         return data_statistics
 
     def __len__(self) -> int:
-        return self.size
+        return self._size
 
 
 def plot_training_results(mean_rewards_history: List,

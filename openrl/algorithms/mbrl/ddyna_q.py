@@ -10,7 +10,8 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from ddyna_q_models import (dqn_fc_discrete_network, dueling_dqn_fc_discrete_network,
                             fc_transition_network, fc_reward_network)
-from ddyna_q_utils import ReplayBuffer, plot_training_results
+from ddyna_q_utils import plot_training_results
+from utils.utils import ReplayBuffer
 
 
 # Set up
@@ -317,6 +318,7 @@ class DDynaQAgent:
         rewards = self.reward_model([states, tf.convert_to_tensor(actions)])
 
         # Add transition to simulation buffer
+        # TODO >> Could use store_transition_batch()
         for i in range(len(states)):
             self.replay_buffer_sim.store_transition((states[i], actions[i], rewards[i], next_states[i], dones[i]))
 
@@ -406,8 +408,8 @@ def main() -> None:
 
     # Create Replay Buffer
     # Note that we could instead use 1 buffer for both >> "buffer_sim = buffer_real"
-    buffer_real = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
-    buffer_sim = ReplayBuffer(state_dim=_state_dims, action_dim=_action_dims)
+    buffer_real = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
+    buffer_sim = ReplayBuffer(state_dims=_state_dims, action_dims=_action_dims)
 
     # Select action-value network architecture for policy
     q_model_func = dueling_dqn_fc_discrete_network if args.network_architecture == "dueling" else dqn_fc_discrete_network
