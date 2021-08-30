@@ -8,7 +8,7 @@ import time
 import argparse
 import numpy as np
 from typing import Union, Tuple
-from ddyna_q_utils import plot_training_results
+from .utils import plot_training_results
 
 
 # Set up
