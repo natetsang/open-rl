@@ -4,8 +4,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
-from .utils import OUActionNoise, plot_training_results
+from algorithms.ddpg.models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
+from algorithms.ddpg.utils import OUActionNoise, plot_training_results
 from utils.utils import ReplayBuffer
 
 # Set up

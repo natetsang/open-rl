@@ -8,8 +8,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
-from .models import FFModel
-from .utils import ReplayBufferWithNoise, plot_training_results
+from algorithms.mbrl.models import FFModel
+from algorithms.mbrl.utils import ReplayBufferWithNoise, plot_training_results
 
 from gym.envs.registration import register
 register(

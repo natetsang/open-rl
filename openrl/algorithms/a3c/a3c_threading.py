@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
-from .utils import plot_training_results
+from algorithms.a3c.utils import plot_training_results
 
 import multiprocessing as mp
 import threading

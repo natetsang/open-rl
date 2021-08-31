@@ -10,8 +10,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import drqn_discrete_network
-from .utils import ReplayBuffer, plot_training_results
+from algorithms.drqn.models import drqn_discrete_network
+from algorithms.drqn.utils import ReplayBuffer, plot_training_results
 
 
 # Set up

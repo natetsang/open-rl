@@ -14,8 +14,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple, Type, List, Dict
-from dqn import DQNAgent
-from .models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
+from algorithms.morel.dqn import DQNAgent
+from algorithms.morel.models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
 from utils.utils import ReplayBuffer
 
 

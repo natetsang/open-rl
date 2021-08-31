@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_fc_discrete_network, critic_fc_network
-from .utils import plot_training_results
+from algorithms.vpg.utils import plot_training_results
 
 
 # Set up constants

@@ -8,8 +8,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
-from .utils import plot_training_results
+from algorithms.dqn.models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
+from algorithms.dqn.utils import plot_training_results
 from utils.utils import ReplayBuffer
 
 # Set up

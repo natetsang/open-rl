@@ -1,4 +1,4 @@
-from typing import Tuple, List
+from typing import Tuple
 import numpy as np
 
 ACTION_TRUE_REWARD_DIST = [0.95, 0.9, 0.3]

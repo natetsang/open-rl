@@ -8,7 +8,7 @@ import time
 import argparse
 import numpy as np
 from typing import Union, Tuple
-from .utils import plot_training_results
+from algorithms.dyna_q.utils import plot_training_results
 
 
 # Set up

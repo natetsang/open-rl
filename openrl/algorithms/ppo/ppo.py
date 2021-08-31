@@ -2,7 +2,6 @@
 N-step A2C using shared NN model with GAE and entropy.
 """
 import gym
-import time
 import argparse
 import numpy as np
 import tensorflow as tf
@@ -10,7 +9,6 @@ import tensorflow_probability as tfp
 from typing import List, Callable, Tuple, Generator
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_fc_continuous_network, critic_fc_network
-from .utils import plot_training_results
 tfd = tfp.distributions
 
 

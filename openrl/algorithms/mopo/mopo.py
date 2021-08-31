@@ -8,16 +8,15 @@ of 1M and their rollout batch size is either 1M (per the ppaer) or 125K (per cod
 
 import gym
 import time
-import pickle
 import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
-from .models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
+from algorithms.mopo.models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
 from utils.utils import ReplayBuffer
-from env_utils import termination_fn, reward_fn
-from sac import SACAgent
-from online_sac import SACAgent as OnlineSACAgent
+from algorithms.mopo.env_utils import termination_fn, reward_fn
+from algorithms.mopo.sac import SACAgent
+from algorithms.mopo.online_sac import SACAgent as OnlineSACAgent
 from gym.envs.registration import register
 register(
     id='obstacles-cs285-v0',

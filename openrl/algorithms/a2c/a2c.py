@@ -9,7 +9,7 @@ import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_critic_fc_discrete_network
-from .utils import plot_training_results
+from algorithms.a2c.utils import plot_training_results
 
 
 # Set up

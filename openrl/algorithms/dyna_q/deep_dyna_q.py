@@ -8,9 +8,9 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import (dqn_fc_discrete_network, dueling_dqn_fc_discrete_network,
-                     fc_transition_network, fc_reward_network)
-from .utils import plot_training_results
+from algorithms.dyna_q.models import (dqn_fc_discrete_network, dueling_dqn_fc_discrete_network,
+                                      fc_transition_network, fc_reward_network)
+from algorithms.dyna_q.utils import plot_training_results
 from utils.utils import ReplayBuffer
 
 

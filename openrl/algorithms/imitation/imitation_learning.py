@@ -4,12 +4,10 @@ import pickle
 import argparse
 import numpy as np
 import tensorflow as tf
-import tensorflow_probability as tfp
 from typing import Callable, Union, Tuple, List
 from models.models import actor_fc_discrete_network, actor_critic_fc_discrete_network
-from .utils import plot_training_results
+from algorithms.imitation.utils import plot_training_results
 from utils.utils import ReplayBuffer
-tfd = tfp.distributions
 
 
 # Set up

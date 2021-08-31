@@ -4,8 +4,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from .models import td3_actor_fc_continuous_network, td3_critic_fc_continuous_network
-from .utils import plot_training_results
+from algorithms.td3.models import td3_actor_fc_continuous_network, td3_critic_fc_continuous_network
+from algorithms.td3.utils import plot_training_results
 from utils.utils import ReplayBuffer
 
 # Set up

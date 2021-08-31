@@ -15,8 +15,8 @@ import numpy as np
 import tensorflow as tf
 from copy import deepcopy
 from typing import Union, Callable, Tuple
-from dqn import DQNAgent
-from .models import dqn_fc_discrete_network
+from algorithms.cql.dqn import DQNAgent
+from algorithms.cql.models import dqn_fc_discrete_network
 from utils.utils import ReplayBuffer
 
 

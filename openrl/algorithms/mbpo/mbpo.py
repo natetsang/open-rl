@@ -6,9 +6,9 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
-from .models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
+from algorithms.mbpo.models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
 from utils.utils import ReplayBuffer
-from .sac import SACAgent
+from algorithms.mbpo.sac import SACAgent
 from gym.envs.registration import register
 register(
     id='obstacles-cs285-v0',
