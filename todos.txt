@@ -1,19 +1,13 @@
-
-
 Environment properties:
 * Either use configure_env() in vpg/utils.py or don't use it in all algos
 * Create Agent variable for `is_discrete_env`. Add logic using this variable
-* Dimensions in replay buffer are hard-coded!! Change this, especially in DDPG
 * Rewards seem to be ep_rewards += reward for discrete and ep_rewards += reward[0] for continuous. Make sure to handle
 each case
 * In argparse, require env_name to be one of several choices.... parser.add_argument('env', choices=('CartPole-v0', ...)
 
-Refactoring:
-* Export some utils.py logic to another folder (e.g. ReplayBuffer, other functions)
-
 Test agent:
-* Add test_agent() to DQN, DDQN, DRQN, DDDQN, etc
-* Add/fix test_agent() in DDPG, TD3, SAC! They should exclude noise!
+* Add run_agent() to DQN, DDQN, DRQN, DDDQN, etc
+* Add/fix run_agent() in DDPG, TD3, SAC! They should exclude noise!
 * Can we put this into a BaseAgent class instead?
 
 
@@ -30,6 +24,7 @@ this will be more consistent
 Plotting:
 * Fix plots! There are still several issues
 * No consistency in plotting!
+* Move logic to utils/utils.py where appropriate
 
 
 Other:
@@ -38,7 +33,7 @@ Other:
 * Right now I don't use max_step at all, even though it's in the argument parser
 
 * change running_reward to be ep_rew if it's the first episode
-* Figure out what to do with CONSTANTS. Do we want them? Should everything just be an argument?
+* Move all non-configurable things to CONSTANTS
 
 * Add self.total_steps as a variable for each Agent class
 * Add self.cur_episode as a variable for each Agent class I currently do this for DDPG/TD3/SAC
@@ -54,6 +49,10 @@ Round 4:
 ----------------------------------------------------------------------------------------------------------
 --------------------------------------------------DONE----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------
+* Move obstacles_env.py into it's own folder
+* Fix imports - use openrl/ as sources root
+* Dimensions in replay buffer are hard-coded!! Change this, especially in DDPG
+* Export some utils.py logic to another folder (e.g. ReplayBuffer, other functions)
 * For Discrete(X) action spaces, action_dim = 1 always! Fix this in the fc_models and in the buffers, where I hard code
 * For the fc_models, instead of taking "num_actions", take "action_dim"
 * In the actor/critic functions, "num_inputs" is confusing, especially when the model inputs both
@@ -65,7 +64,7 @@ states and actions. Change "num_inputs" to "state_dims".
 -- It should just be => if latest_mean_rewards > best_mean_rewards .... We don't need the np.mean
 * Create main() method
 * Point everything to self.env instead of env
-* I think test_agent() has env.step() instead of self.env.step()!
+* I think run_agent() has env.step() instead of self.env.step()!
 * Remove "discrete" and "continuous" from the name of the critic methods. It's only the policy
 that is discrete or continuous. The value function remains the same for both cases
 * Add docstring to Replay Buffer
