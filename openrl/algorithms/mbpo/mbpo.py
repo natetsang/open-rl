@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from algorithms.mbpo.models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 from algorithms.mbpo.sac import SACAgent
 from gym.envs.registration import register
 register(

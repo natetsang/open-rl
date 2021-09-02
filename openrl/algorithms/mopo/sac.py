@@ -2,7 +2,7 @@ import gym
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 import tensorflow_probability as tfp
 
 

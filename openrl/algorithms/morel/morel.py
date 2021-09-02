@@ -16,7 +16,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple, Type, List, Dict
 from algorithms.morel.dqn import DQNAgent
 from algorithms.morel.models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 
 
 # Set up constants

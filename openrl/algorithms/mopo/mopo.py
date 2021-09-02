@@ -13,7 +13,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from algorithms.mopo.models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 from algorithms.mopo.env_utils import termination_fn, reward_fn
 from algorithms.mopo.sac import SACAgent
 from algorithms.mopo.online_sac import SACAgent as OnlineSACAgent

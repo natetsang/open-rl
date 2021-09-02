@@ -17,7 +17,7 @@ from copy import deepcopy
 from typing import Union, Callable, Tuple
 from algorithms.cql.dqn import DQNAgent
 from algorithms.cql.models import dqn_fc_discrete_network
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 
 
 # Set up

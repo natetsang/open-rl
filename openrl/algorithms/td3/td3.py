@@ -6,7 +6,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from algorithms.td3.models import td3_actor_fc_continuous_network, td3_critic_fc_continuous_network
 from algorithms.td3.utils import plot_training_results
-from utils.utils import ReplayBuffer
+from util.utils import ReplayBuffer
 
 # Set up
 GAMMA = 0.99
