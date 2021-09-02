@@ -17,12 +17,9 @@ from util.utils import ReplayBuffer
 from algorithms.mopo.env_utils import termination_fn, reward_fn
 from algorithms.mopo.sac import SACAgent
 from algorithms.mopo.online_sac import SACAgent as OnlineSACAgent
-from gym.envs.registration import register
-register(
-    id='obstacles-cs285-v0',
-    entry_point='obstacles_env:Obstacles',
-    max_episode_steps=500,
-)
+from envs import register_envs
+
+register_envs()  # Register Obstacles env
 
 
 # Set up

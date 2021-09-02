@@ -9,12 +9,9 @@ from typing import Union, Tuple, List, Type
 from algorithms.mbpo.models import FFModel, sac_actor_fc_continuous_network, critic_fc_network
 from util.utils import ReplayBuffer
 from algorithms.mbpo.sac import SACAgent
-from gym.envs.registration import register
-register(
-    id='obstacles-cs285-v0',
-    entry_point='obstacles_env:Obstacles',
-    max_episode_steps=500,
-)
+from envs import register_envs
+
+register_envs()  # Register Obstacles env
 
 
 # Set up

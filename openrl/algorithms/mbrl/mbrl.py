@@ -10,13 +10,9 @@ import tensorflow as tf
 from typing import Union, Tuple, List, Type
 from algorithms.mbrl.models import FFModel
 from algorithms.mbrl.utils import ReplayBufferWithNoise, plot_training_results
+from envs import register_envs
 
-from gym.envs.registration import register
-register(
-    id='obstacles-cs285-v0',
-    entry_point='obstacles_env:Obstacles',
-    max_episode_steps=500,
-)
+register_envs()  # Register Obstacles env
 
 
 class MBAgent:
