@@ -6,7 +6,7 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, List, Callable, Tuple
+from typing import List, Callable, Tuple
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_critic_fc_discrete_network
 from algorithms.a2c.utils import plot_training_results
@@ -174,11 +174,10 @@ class ActorCriticAgent:
             grads = tape.gradient(total_loss, self.model.trainable_variables)
             self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
-    def test_agent(self, render=False) -> Tuple[Union[float, int], int]:
-        total_reward = 0
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, cur_step = 0, 0
         state = self.eval_env.reset()
         done = False
-        cur_step = 0
         while not done:
             if render:
                 self.eval_env.render()
@@ -238,7 +237,7 @@ def main() -> None:
         if e % TEST_FREQ == 0:
             ep_wallclock_history.append(time.time() - start)
 
-            ep_rew, ep_steps = agent.test_agent()
+            ep_rew, ep_steps = agent.run_agent()
             running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
 
             ep_rewards_history.append(ep_rew)

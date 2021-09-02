@@ -6,7 +6,7 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, List, Callable
+from typing import Union, Tuple, List, Callable
 from models.models import actor_fc_discrete_network
 from algorithms.reinforce.utils import plot_training_results
 
@@ -116,18 +116,19 @@ class REINFORCEAgent:
 
         return ep_rewards
 
-    def test_agent(self, render=False) -> Union[float, int]:
-        total_reward = 0
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, cur_step = 0, 0
         state = self.env.reset()
         done = False
         while not done:
             if render:
                 self.env.render()
+            cur_step += 1
             action_prob = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
-        return total_reward
+        return total_reward, cur_step
 
 
 def main() -> None:

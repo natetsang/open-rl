@@ -152,6 +152,10 @@ class DDPGAgent:
             state = next_state
         return ep_rewards, cur_step
 
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        # TODO
+        raise NotImplementedError
+
 
 def main() -> None:
     # Create environment

@@ -169,7 +169,7 @@ class ImitationAgent:
         self.cur_episode += 1
         return losses
 
-    def test_agent(self, render=False) -> Tuple[float, int]:
+    def run_agent(self, render=False) -> Tuple[float, int]:
         total_steps = 0
         total_reward = 0
         state = self.env.reset()
@@ -252,7 +252,7 @@ def main() -> None:
     for e in range(args.epochs):
         # Run one episode
         ep_loss = agent.train_episode()
-        ep_rew, ep_steps = agent.test_agent()
+        ep_rew, ep_steps = agent.run_agent()
 
         # Prepare for logging
         mean_ep_rew, max_ep_rew, min_ep_rew, std_ep_rew = np.mean(ep_rew), np.max(ep_rew), np.min(ep_rew), np.std(ep_rew)
@@ -280,7 +280,7 @@ def main() -> None:
     print("Beginning evaluation of trained agent!")
     eval_rew = []
     for i in range(50):
-        ep_rew, ep_steps = agent.test_agent()
+        ep_rew, ep_steps = agent.run_agent()
         eval_rew.append(ep_rew)
     print(f"Evaluation rewards: mean - {np.mean(eval_rew)} | min - {np.min(eval_rew)} | max - {np.max(eval_rew)}")
 

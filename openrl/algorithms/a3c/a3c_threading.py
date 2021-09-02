@@ -226,11 +226,10 @@ class ActorCriticWorker(threading.Thread):
 
         return ep_rewards, total_steps
 
-    def test_agent(self, render=False) -> Tuple[Union[float, int], int]:
-        total_reward = 0
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, cur_step = 0, 0
         state = self.env.reset()
         done = False
-        cur_step = 0
         while not done:
             if render:
                 self.env.render()

@@ -121,18 +121,19 @@ class REINFORCEAgent:
 
         return ep_rewards, cur_step
 
-    def test_agent(self, render=False) -> Union[float, int]:
-        total_reward = 0
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, cur_state = 0, 0
         state = self.env.reset()
         done = False
         while not done:
             if render:
                 self.env.render()
+            cur_state += 1
             action_prob = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
-        return total_reward
+        return total_reward, cur_state
 
 
 def main() -> None:

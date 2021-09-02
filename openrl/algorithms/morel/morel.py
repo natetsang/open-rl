@@ -334,18 +334,19 @@ class MOReLAgent:
         self.cur_episode += 1
         return info
 
-    def test_agent(self, render=False) -> Union[float, int]:
-        total_reward = 0
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, cur_step = 0, 0
         state = self.env.reset()
         done = False
         while not done:
             if render:
                 self.env.render()
+            cur_step += 1
             action_prob, _ = self.policy(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
             state, reward, done, _ = self.env.step(action)
             total_reward += reward
-        return total_reward
+        return total_reward, cur_step
 
 
 def main() -> None:
@@ -461,8 +462,8 @@ def main() -> None:
     morel_evaluation_rewards = []
     dqn_evaluation_rewards = []
     for e in range(args.evaluation_epochs):
-        morel_reward = offline_agent.test_agent()
-        dqn_reward = online_agent.test_agent()
+        morel_reward = offline_agent.run_agent()
+        dqn_reward = online_agent.run_agent()
 
         morel_evaluation_rewards.append(morel_reward)
         dqn_evaluation_rewards.append(dqn_reward)

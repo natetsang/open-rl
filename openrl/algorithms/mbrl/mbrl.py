@@ -298,6 +298,10 @@ class MBAgent:
         self.cur_episode += 1
         return mean_traj_rewards, total_num_steps, losses
 
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        # TODO
+        raise NotImplementedError
+
 
 def main() -> None:
     # Create environment

@@ -214,3 +214,7 @@ class SACAgent:
         self.cur_episode += 1
 
         return actor_loss, critic_loss1, critic_loss2
+
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        # TODO
+        raise NotImplementedError

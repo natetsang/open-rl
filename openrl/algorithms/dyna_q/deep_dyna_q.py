@@ -390,6 +390,10 @@ class DDynaQAgent:
 
         return trajectory_rewards, trajectory_steps
 
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        # TODO
+        raise NotImplementedError
+
 
 def main() -> None:
     # Create environment

@@ -237,7 +237,8 @@ class PPOAgent:
                 grads = tape.gradient(critic_loss, self.critic_model.trainable_variables)
                 self.critic_optimizer.apply_gradients(zip(grads, self.critic_model.trainable_variables))
 
-    def test_agent(self) -> float:
+    def run_agent(self) -> float:
+        # TODO >> Runs N Times!
         total_rewards = []
         for i in range(10):
             state = tf.expand_dims(tf.convert_to_tensor(self.eval_env.reset()), 0)
@@ -294,7 +295,7 @@ def main() -> None:
     for e in range(args.epochs):
         agent.train_episode()
 
-        eval_rews = agent.test_agent()
+        eval_rews = agent.run_agent()
         if e == 0:
             running_reward = eval_rews
         else:

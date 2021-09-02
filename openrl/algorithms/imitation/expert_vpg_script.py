@@ -123,6 +123,8 @@ class VPGAgent:
         return ep_rewards, cur_step
 
     def run_agent(self) -> List[Tuple]:
+        # TODO >> So this is different than run_agent() in other scripts. This returns the transitions.
+        # TODO >> probably should rename this
         trns = []
 
         state = self.env.reset()
