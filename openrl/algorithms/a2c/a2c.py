@@ -6,10 +6,11 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import List, Callable, Tuple
+from typing import Callable, Tuple
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_critic_fc_discrete_network
 from algorithms.a2c.utils import plot_training_results
+from util.compute_returns import compute_discounted_returns, compute_gae_returns
 
 
 # Set up
@@ -32,6 +33,7 @@ if debug:
 
 
 def normalize(x):
+    ## TODO >> Can we substitute this for the normalize() func in utils?
     x -= tf.math.reduce_mean(x)
     x /= (tf.math.reduce_std(x) + 1e-8)
     return x
@@ -45,41 +47,6 @@ def make_env(env_name: str) -> Callable[[], gym.Env]:
         env = gym.make(env_name)
         return env
     return _thunk
-
-
-def compute_gae_returns(next_value, rewards: List, masks: List, values: List) -> List:
-    """
-    Computes the generalized advantage estimation (GAE) of the returns.
-
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :param values:
-    :return: GAE of the returns
-    """
-    values = values + [next_value]
-    gae = 0
-    returns = []
-    for step in reversed(range(len(rewards))):
-        delta = rewards[step] + GAMMA * values[step + 1] * masks[step] - values[step]
-        gae = delta + GAMMA * LAMBDA * masks[step] * gae
-        returns.insert(0, gae + values[step])
-    return returns
-
-
-def compute_discounted_returns(next_value, rewards: List, masks: List) -> List:
-    """
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :return:
-    """
-    discounted_rewards = []
-    total_ret = next_value * masks[-1]
-    for r in rewards[::-1]:
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class ActorCriticAgent:
@@ -147,8 +114,10 @@ class ActorCriticAgent:
                                                                         for i, a in enumerate(action)]))
 
                 _, next_value = self.model(state)
-                returns = compute_gae_returns(next_value, reward_trajectory, mask_trajectory, value_trajectory)
-                targets = compute_discounted_returns(next_value, reward_trajectory, mask_trajectory)
+                returns = compute_gae_returns(next_value=next_value, rewards=reward_trajectory, masks=mask_trajectory,
+                                              values=value_trajectory, gamma=GAMMA, lambda_=LAMBDA)
+                targets = compute_discounted_returns(next_value=next_value, rewards=reward_trajectory,
+                                                     masks=mask_trajectory, gamma=GAMMA)
 
                 # Concat
                 returns = tf.concat(returns, axis=0)

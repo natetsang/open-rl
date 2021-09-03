@@ -9,7 +9,7 @@ import numpy as np
 import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
-
+from util.compute_returns import compute_returns_simple
 
 # Set up constants
 GAMMA = 0.99
@@ -22,26 +22,6 @@ EXPERT_POLICY_SAVE_PATH = "./checkpoints/expert_model_weights"
 EXPERT_POLICY_TRAINING_REWARD_THRESHOLD = 120
 EXPERT_DATASET_SIZE_LIM = 2000
 EXPERT_DATASET_SAVE_PATH = "expert_data.pkl"
-
-
-def compute_returns(rewards: List) -> List:
-    """
-    Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
-
-    :param rewards: a list of rewards where the ith entry is the reward received at timestep t=i.
-    :return: the rewards-to-go, where the ith entry is the cumulative rewards from timestep t=i to t=T,
-        where T is equal to len(rewards).
-    """
-    discounted_rewards = []
-    total_ret = 0
-    for r in rewards[::-1]:
-        # Without discount
-        # total_ret = r + total_ret
-
-        # With discount
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class VPGAgent:
@@ -100,7 +80,7 @@ class VPGAgent:
                 action_prob_trajectory.append(tf.convert_to_tensor([tf.expand_dims(action_prob[0][action], 0)]))
 
             # Calculate rewards
-            returns = compute_returns(reward_trajectory)
+            returns = compute_returns_simple(rewards=reward_trajectory, gamma=GAMMA)
 
             # Concat
             returns = tf.concat(returns, axis=0)

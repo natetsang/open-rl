@@ -11,31 +11,12 @@ import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
 from algorithms.vpg.utils import plot_training_results
+from util.compute_returns import compute_returns_simple
 
 
 # Set up constants
 GAMMA = 0.99
 LEARNING_RATE = 0.001
-
-
-def compute_returns(rewards: List) -> List:
-    """
-    Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
-
-    :param rewards: a list of rewards where the ith entry is the reward received at timestep t=i.
-    :return: the rewards-to-go, where the ith entry is the cumulative rewards from timestep t=i to t=T,
-        where T is equal to len(rewards).
-    """
-    discounted_rewards = []
-    total_ret = 0
-    for r in rewards[::-1]:
-        # Without discount
-        # total_ret = r + total_ret
-
-        # With discount
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 # WARNING: THIS IS VERY VERY WRONG!!! THIS IS NOT HOW YOU COMPUTE THE EXPECTED RETURNS
@@ -102,7 +83,7 @@ class REINFORCEAgent:
             # returns = tf.reduce_sum(reward_trajectory)
 
             ## Take advantage of temporal structure -- R(t=t' to T)
-            returns = compute_returns(reward_trajectory)
+            returns = compute_returns_simple(rewards=reward_trajectory, gamma=GAMMA)
             returns = tf.concat(returns, axis=0)
 
             ## Reduce variance by introducing a baseline b(s)

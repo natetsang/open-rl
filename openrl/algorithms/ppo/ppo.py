@@ -6,9 +6,10 @@ import argparse
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
-from typing import List, Callable, Tuple, Generator
+from typing import Callable, Tuple, Generator
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_fc_continuous_network, critic_fc_network
+from util.compute_returns import compute_gae_returns
 tfd = tfp.distributions
 
 
@@ -29,6 +30,7 @@ k_train_iters = 8  # NUM_STEPS_PER_ROLLOUT // MINIBATCH_SIZE
 
 
 def normalize(x):
+    # TODO >> Can I reuse this normalize() in utils?
     x -= tf.math.reduce_mean(x)
     x /= (tf.math.reduce_std(x) + 1e-8)
     return x
@@ -42,41 +44,6 @@ def make_env(env_name: str) -> Callable[[], gym.Env]:
         env = gym.make(env_name)
         return env
     return _thunk
-
-
-def compute_gae_returns(next_value, rewards: List, masks: List, values: List) -> List:
-    """
-    Computes the generalized advantage estimation (GAE) of the returns.
-
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :param values:
-    :return: GAE of the returns
-    """
-    values = values + [next_value]
-    gae = 0
-    returns = []
-    for step in reversed(range(len(rewards))):
-        delta = rewards[step] + GAMMA * values[step + 1] * masks[step] - values[step]
-        gae = delta + GAMMA * LAMBDA * masks[step] * gae
-        returns.insert(0, gae + values[step])
-    return returns
-
-
-def compute_discounted_returns(next_value, rewards: List, masks: List) -> List:
-    """
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :return:
-    """
-    discounted_rewards = []
-    total_ret = next_value * masks[-1]
-    for r in rewards[::-1]:
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 def sample_batch(mini_batch_size: int, states: tf.Tensor, actions: tf.Tensor, log_probs: tf.Tensor,
@@ -170,7 +137,8 @@ class PPOAgent:
 
         # Calculate A & G
         next_value = self.critic_model(state)
-        returns = compute_gae_returns(next_value, rewards, masks, values)
+        returns = compute_gae_returns(next_value=next_value, rewards=rewards, masks=masks,
+                                      values=values, gamma=GAMMA, lambda_=LAMBDA)
 
         states = tf.concat(states, axis=0)
         actions = tf.concat(actions, axis=0)

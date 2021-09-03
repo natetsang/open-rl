@@ -10,7 +10,7 @@ import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
 from algorithms.a3c.utils import plot_training_results
-
+from util.compute_returns import compute_gae_returns, compute_discounted_returns
 import multiprocessing as mp
 import threading
 from queue import Queue
@@ -24,44 +24,6 @@ ACTOR_LOSS_WEIGHT = 1.0
 CRITIC_LOSS_WEIGHT = 0.5
 ENTROPY_LOSS_WEIGHT = 0.01
 TEST_FREQ = 1  # Evaluate the agent at this cadence
-
-
-def compute_gae_returns(next_value, rewards: List, masks: List, values: List) -> List:
-    """
-    Computes the generalized advantage estimation (GAE) of the returns.
-
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :param values:
-    :return: GAE of the returns
-    """
-    values = values + [next_value]
-    gae = 0
-    returns = []
-    for step in reversed(range(len(rewards))):
-        delta = rewards[step] + GAMMA * values[step + 1] * masks[step] - values[step]
-        gae = delta + GAMMA * LAMBDA * masks[step] * gae
-
-        # Notice I'm adding back the value to get the reward
-        returns.insert(0, gae + values[step])
-
-    return returns
-
-
-def compute_discounted_returns(next_value, rewards: List, masks: List) -> List:
-    """
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :return:
-    """
-    discounted_rewards = []
-    total_ret = next_value * masks[-1]
-    for r in rewards[::-1]:
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class ActorCriticWorker(threading.Thread):
@@ -197,8 +159,10 @@ class ActorCriticWorker(threading.Thread):
                     action_prob_trajectory.append(tf.convert_to_tensor([tf.expand_dims(action_prob[0][action], 0)]))
 
                 _, next_value = self.local_model(tf.expand_dims(tf.convert_to_tensor(state), 0))
-                returns = compute_gae_returns(next_value, reward_trajectory, mask_trajectory, value_trajectory)
-                targets = compute_discounted_returns(next_value, reward_trajectory, mask_trajectory)
+                returns = compute_gae_returns(next_value=next_value, rewards=reward_trajectory, masks=mask_trajectory,
+                                              values=value_trajectory, gamma=GAMMA, lambda_=LAMBDA)
+                targets = compute_discounted_returns(next_value=next_value, rewards=reward_trajectory,
+                                                     masks=mask_trajectory, gamma=GAMMA)
 
                 # Concat
                 returns = tf.concat(returns, axis=0)
@@ -234,7 +198,7 @@ class ActorCriticWorker(threading.Thread):
             if render:
                 self.env.render()
             cur_step += 1
-            action_prob, _ = self.local_model(tf.expand_dims(tf.convert_to_tensor(state), 0))
+            action_prob, _ = self.global_model(tf.expand_dims(tf.convert_to_tensor(state), 0))
             action = np.argmax(np.squeeze(action_prob))
             state, reward, done, _ = self.env.step(action)
             total_reward += reward

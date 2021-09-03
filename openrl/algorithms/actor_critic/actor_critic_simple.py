@@ -6,31 +6,16 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, List, Callable, Tuple
+from typing import Union, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
 from algorithms.actor_critic.utils import plot_training_results
-
+from util.compute_returns import compute_discounted_returns
 
 # Set up constants
 GAMMA = 0.99
 LEARNING_RATE = 0.001
 ACTOR_LOSS_WEIGHT = 1.0
 CRITIC_LOSS_WEIGHT = 0.5
-
-
-def compute_discounted_returns(next_value, rewards: List, masks: List) -> List:
-    """
-    :param next_value:
-    :param rewards:
-    :param masks:
-    :return:
-    """
-    discounted_rewards = []
-    total_ret = next_value * masks[-1]
-    for r in rewards[::-1]:
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class ActorCriticAgent:
@@ -91,8 +76,8 @@ class ActorCriticAgent:
                 action_prob_trajectory.append(tf.convert_to_tensor([tf.expand_dims(action_prob[0][action], 0)]))
 
                 _, next_value = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
-                returns = compute_discounted_returns(next_value, reward_trajectory, mask_trajectory)
-
+                returns = compute_discounted_returns(next_value=next_value, rewards=reward_trajectory,
+                                                     masks=mask_trajectory, gamma=GAMMA)
                 # Concat
                 returns = tf.concat(returns, axis=0)
                 action_prob_trajectory = tf.concat(action_prob_trajectory, axis=0)

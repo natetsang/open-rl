@@ -9,7 +9,7 @@ import tensorflow as tf
 from typing import Union, List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
 from algorithms.vpg.utils import plot_training_results
-
+from util.compute_returns import compute_returns_simple
 
 # Set up constants
 GAMMA = 0.99
@@ -100,7 +100,7 @@ class VPGAgent:
                     action_prob_trajectory.append(tf.convert_to_tensor([tf.expand_dims(action_prob[0][action], 0)]))
 
                 # Calculate rewards
-                returns = compute_returns(reward_trajectory)
+                returns = compute_returns_simple(rewards=reward_trajectory, gamma=GAMMA)
 
                 # Concat
                 returns = tf.concat(returns, axis=0)

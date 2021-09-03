@@ -6,34 +6,14 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Tuple, List, Callable
+from typing import Union, Tuple, Callable
 from models.models import actor_fc_discrete_network
 from algorithms.reinforce.utils import plot_training_results
-
+from util.compute_returns import compute_discounted_returns
 
 # Set up constants
 GAMMA = 0.99
 LEARNING_RATE = 0.001
-
-
-def compute_returns(next_value, rewards: List, masks: List) -> List:
-    """
-    Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
-
-    :param rewards: a list of rewards where the ith entry is the reward received at timestep t=i.
-    :return: the rewards-to-go, where the ith entry is the cumulative rewards from timestep t=i to t=T,
-        where T is equal to len(rewards).
-    """
-    discounted_rewards = []
-    total_ret = next_value * masks[-1]
-    for r in rewards[::-1]:
-        # Without discount
-        # total_ret = r + total_ret
-
-        # With discount
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class REINFORCEAgent:
@@ -98,7 +78,9 @@ class REINFORCEAgent:
                     action_prob_trajectory.append(tf.convert_to_tensor([tf.expand_dims(action_prob[0][action], 0)]))
 
                 # Concat
-                returns = compute_returns(0, reward_trajectory, mask_trajectory)
+                returns = compute_discounted_returns(next_value=0, rewards=reward_trajectory, masks=mask_trajectory,
+                                                     gamma=GAMMA)
+                # returns = compute_returns(next_value=0, rewards=reward_trajectory, masks=mask_trajectory)
                 returns = tf.concat(returns, axis=0)
 
                 # If I don't take advantage of temporal structure, I'd just

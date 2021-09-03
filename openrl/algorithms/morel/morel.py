@@ -17,6 +17,7 @@ from typing import Callable, Tuple, Type, List, Dict
 from algorithms.morel.dqn import DQNAgent
 from algorithms.morel.models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
 from util.replay_buffer import ReplayBuffer
+from util.compute_returns import compute_returns_simple
 
 
 # Set up constants
@@ -24,22 +25,6 @@ GAMMA = 0.99
 LEARNING_RATE = 0.005
 ACTOR_LOSS_WEIGHT = 1.0
 CRITIC_LOSS_WEIGHT = 0.1
-
-
-def compute_returns(rewards: List) -> List:
-    """
-    Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
-
-    :param rewards: a list of rewards where the ith entry is the reward received at timestep t=i.
-    :return: the rewards-to-go, where the ith entry is the cumulative rewards from timestep t=i to t=T,
-        where T is equal to len(rewards).
-    """
-    discounted_rewards = []
-    total_ret = 0
-    for r in rewards[::-1]:
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class MOReLAgent:
@@ -279,7 +264,7 @@ class MOReLAgent:
                 last_idxs.append(last_idx)
 
                 # Calculate rewards
-                returns = compute_returns(trajectory['rewards'])
+                returns = compute_returns_simple(rewards=trajectory['rewards'], gamma=GAMMA)
                 trajectory['discounted_returns'] = tf.expand_dims(tf.concat(returns, axis=0), axis=1)
 
                 # Calculate advantages

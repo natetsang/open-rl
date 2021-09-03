@@ -3,9 +3,10 @@ Continuous VPG using two networks.
 This is implemented correctly but doesn't learn. We need a better algo
 for continuous action spaces!
 """
-from typing import Union, List, Callable, Tuple
+from typing import Union, Callable, Tuple
 from models.models import actor_fc_continuous_network, critic_fc_network
 from algorithms.vpg.utils import plot_training_results
+from util.compute_returns import compute_returns_simple
 
 import gym
 import time
@@ -19,26 +20,6 @@ tfd = tfp.distributions
 # Set up constants
 GAMMA = 0.99
 LEARNING_RATE = 0.01
-
-
-def compute_returns(rewards: List) -> List:
-    """
-    Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
-
-    :param rewards: a list of rewards where the ith entry is the reward received at timestep t=i.
-    :return: the rewards-to-go, where the ith entry is the cumulative rewards from timestep t=i to t=T,
-        where T is equal to len(rewards).
-    """
-    discounted_rewards = []
-    total_ret = 0
-    for r in rewards[::-1]:
-        # Without discount
-        # total_ret = r + total_ret
-
-        # With discount
-        total_ret = r + GAMMA * total_ret
-        discounted_rewards.insert(0, total_ret)
-    return discounted_rewards
 
 
 class VPGAgent:
@@ -101,7 +82,7 @@ class VPGAgent:
                 action_logprob_trajectory.append(tf.cast(tf.reshape(log_prob, (1, 1)), tf.float32))
 
             # Calculate rewards
-            returns = compute_returns(reward_trajectory)
+            returns = compute_returns_simple(rewards=reward_trajectory, gamma=GAMMA)
 
             # Concat
             returns = tf.concat(returns, axis=0)
