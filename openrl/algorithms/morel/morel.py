@@ -13,10 +13,10 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple, Type, List, Dict
+from typing import Callable, Tuple, Type, List, Dict
 from algorithms.morel.dqn import DQNAgent
 from algorithms.morel.models import FFModel, dqn_fc_discrete_network, actor_critic_fc_discrete_network, fc_reward_network
-from util.utils import ReplayBuffer
+from util.replay_buffer import ReplayBuffer
 
 
 # Set up constants

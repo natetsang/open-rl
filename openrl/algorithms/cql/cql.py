@@ -14,10 +14,10 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from copy import deepcopy
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from algorithms.cql.dqn import DQNAgent
 from algorithms.cql.models import dqn_fc_discrete_network
-from util.utils import ReplayBuffer
+from util.replay_buffer import ReplayBuffer
 
 
 # Set up

@@ -6,7 +6,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from algorithms.sac.models import sac_actor_fc_continuous_network, sac_critic_fc_continuous_network
 from algorithms.sac.utils import plot_training_results
-from util.utils import ReplayBuffer
+from util.replay_buffer import ReplayBuffer
 import tensorflow_probability as tfp
 
 

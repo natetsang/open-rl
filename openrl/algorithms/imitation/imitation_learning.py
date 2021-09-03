@@ -7,7 +7,7 @@ import tensorflow as tf
 from typing import Callable, Union, Tuple, List
 from models.models import actor_fc_discrete_network, actor_critic_fc_discrete_network
 from algorithms.imitation.utils import plot_training_results
-from util.utils import ReplayBuffer
+from util.replay_buffer import ReplayBuffer
 
 
 # Set up

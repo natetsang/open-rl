@@ -6,7 +6,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from algorithms.ddpg.models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
 from algorithms.ddpg.utils import OUActionNoise, plot_training_results
-from util.utils import ReplayBuffer
+from util.replay_buffer import ReplayBuffer
 
 # Set up
 GAMMA = 0.99
