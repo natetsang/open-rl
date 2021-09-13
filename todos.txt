@@ -8,7 +8,6 @@ each case
 Test agent:
 * Add run_agent() to DQN, DDQN, DRQN, DDDQN, etc
 * Add/fix run_agent() in DDPG, TD3, SAC! They should exclude noise!
-* Can we put this into a BaseAgent class instead?
 
 
 Saving:
@@ -49,6 +48,7 @@ Round 4:
 ----------------------------------------------------------------------------------------------------------
 --------------------------------------------------DONE----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------
+* Move methods to compute returns to own file
 * Move obstacles_env.py into it's own folder
 * Fix imports - use openrl/ as sources root
 * Dimensions in replay buffer are hard-coded!! Change this, especially in DDPG
