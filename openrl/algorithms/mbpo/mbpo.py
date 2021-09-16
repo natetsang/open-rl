@@ -221,21 +221,25 @@ class MBPOAgent:
         self.cur_episode += 1
         return avg_dynamics_loss
 
-    def run_agent(self) -> float:
-        # TODO >> This runs multiple times.
-        total_rewards = []
-        for i in range(10):
-            state = tf.expand_dims(tf.convert_to_tensor(self.env.reset()), 0)
-            done = False
-            ep_rewards = 0
-            while not done:
-                state = tf.reshape(state, [1, self.state_dims])
-                action, _ = self.policy.actor_model(state)
-                state, reward, done, _ = self.env.step(action[0])
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
 
-                ep_rewards += reward
-            total_rewards.append(ep_rewards)
-        return float(np.mean(total_rewards))
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action, _ = self.policy.actor_model(tf.expand_dims(state, axis=0))
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action[0])
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
@@ -304,7 +308,7 @@ def main() -> None:
         # Run one episode
         dynamics_loss = agent.train_episode()
 
-        eval_ep_rew = agent.run_agent()
+        eval_ep_rew, _ = agent.run_agent()
 
         template = "EPISODE {} | dynamics loss: {:.2f} | eval mean ep reward: {:.2f} | total time elapsed (sec): {:.2f}"
         print(template.format(e, dynamics_loss, eval_ep_rew, time.time() - start))

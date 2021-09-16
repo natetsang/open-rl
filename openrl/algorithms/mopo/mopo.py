@@ -223,21 +223,25 @@ class MOPOAgent:
 
         self.cur_episode += 1
 
-    def run_agent(self) -> float:
-        # TODO > Runs N times
-        total_rewards = []
-        for i in range(10):
-            state = tf.expand_dims(tf.convert_to_tensor(self.env.reset()), 0)
-            done = False
-            ep_rewards = 0
-            while not done:
-                state = tf.reshape(state, [1, self.state_dims])
-                action, _ = self.policy.actor_model(state)
-                state, reward, done, _ = self.env.step(action[0])
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
 
-                ep_rewards += reward
-            total_rewards.append(ep_rewards)
-        return float(np.mean(total_rewards))
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action, _ = self.policy.actor_model(tf.expand_dims(state, axis=0))
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action[0])
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
@@ -348,7 +352,7 @@ def main() -> None:
         dmodel_size = len(offline_agent.policy.replay_buffer)
         offline_agent.train_episode()
 
-        eval_ep_rew = offline_agent.run_agent()
+        eval_ep_rew, _ = offline_agent.run_agent()
 
         template = "EPISODE {} | eval mean ep reward: {:.2f} | D_model size: {} | total time elapsed (sec): {:.2f}"
         print(template.format(e, eval_ep_rew, dmodel_size, time.time() - start))
@@ -361,8 +365,8 @@ def main() -> None:
     mopo_evaluation_rewards = []
     sac_evaluation_rewards = []
     for e in range(args.evaluation_epochs):
-        mopo_reward = offline_agent.run_agent()
-        sac_reward = online_agent.run_agent()
+        mopo_reward, _ = offline_agent.run_agent()
+        sac_reward, _ = online_agent.run_agent()
 
         mopo_evaluation_rewards.append(mopo_reward)
         sac_evaluation_rewards.append(sac_reward)

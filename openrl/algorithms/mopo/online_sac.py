@@ -243,18 +243,24 @@ class SACAgent:
         return ep_rewards, cur_step
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        total_reward, cur_step = 0, 0
-        state = tf.expand_dims(tf.convert_to_tensor(self.env.reset()), 0)
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
         done = False
+
         while not done:
             if render:
                 self.env.render()
-            cur_step += 1
-            action, _ = self.actor_model(state)
+
+            # Select action
+            action, _ = self.actor_model(tf.expand_dims(state, axis=0))
+
+            # Interact with environment
             state, reward, done, _ = self.env.step(action[0])
-            state = tf.reshape(state, [1, self.state_dims])
+
+            # Bookkeeping
             total_reward += reward
-        return total_reward, cur_step
+            total_steps += 1
+        return total_reward, total_steps
 
     def run_agent_and_add_to_buffer(self) -> None:
         transitions = []

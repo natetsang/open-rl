@@ -212,8 +212,29 @@ class DQNAgent:
         return ep_rewards, cur_step
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        init_state = np.zeros([self.history_length, self.state_dims])
+        state = self.update_states(init_state, self.env.reset())
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action = self.get_action(state)
+
+            # Interact with environment
+            next_state, reward, done, _ = self.env.step(action)
+
+            # Update states with next_state
+            next_state = tf.expand_dims(next_state, axis=0)
+            state = self.update_states(state, next_state)
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
@@ -264,7 +285,7 @@ def main() -> None:
     start = time.time()
     for e in range(args.epochs):
         ep_rew, ep_steps = agent.train_episode()
-
+        agent.run_agent()
         ep_wallclock_history.append(time.time() - start)
 
         # Track progress

@@ -6,8 +6,7 @@ each case
 * In argparse, require env_name to be one of several choices.... parser.add_argument('env', choices=('CartPole-v0', ...)
 
 Test agent:
-* Add run_agent() to DQN, DDQN, DRQN, DDDQN, etc
-* Add/fix run_agent() in DDPG, TD3, SAC! They should exclude noise!
+* Add run_agent() to Dyna-Q, Deep Dyna-Q, MCTS
 
 
 Saving:
@@ -24,6 +23,7 @@ Plotting:
 * Fix plots! There are still several issues
 * No consistency in plotting!
 * Move logic to utils/utils.py where appropriate
+* Update the main() method to call sample_trajectory() at a certain cadence for plotting
 
 
 Other:
@@ -40,6 +40,10 @@ Other:
 * Add "required=True" to the parser, also, use "action=store_true" where relevant
 * Think about whether it's cleaner to convert args to params using params = vars(args) after doing args.parser.parse_args()
 * Clarify difference between episode and epochs
+* Do we always need to do tf.convert_to_tensor()? Is it okay to keep things as numpy arrays instead? It would be much cleaner this way!
+* For DDPG and possibly all Pendulum --> see why passing an action like [[0.44]] doesn't play well in env.step(action)...
+* Lots of updates for Bandits!
+
 
 Round 4:
 * Dockerize
@@ -48,6 +52,7 @@ Round 4:
 ----------------------------------------------------------------------------------------------------------
 --------------------------------------------------DONE----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------
+* Add, refactor, update run_agent() in all deep-RL agents
 * Move methods to compute returns to own file
 * Move obstacles_env.py into it's own folder
 * Fix imports - use openrl/ as sources root
@@ -64,7 +69,7 @@ states and actions. Change "num_inputs" to "state_dims".
 -- It should just be => if latest_mean_rewards > best_mean_rewards .... We don't need the np.mean
 * Create main() method
 * Point everything to self.env instead of env
-* I think run_agent() has env.step() instead of self.env.step()!
+* I think sample_trajectory() has env.step() instead of self.env.step()!
 * Remove "discrete" and "continuous" from the name of the critic methods. It's only the policy
 that is discrete or continuous. The value function remains the same for both cases
 * Add docstring to Replay Buffer

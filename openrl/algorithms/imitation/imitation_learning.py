@@ -170,16 +170,22 @@ class ImitationAgent:
         return losses
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        total_steps = 0
-        total_reward = 0
+        total_reward, total_steps = 0, 0
         state = self.env.reset()
         done = False
+
         while not done:
             if render:
                 self.env.render()
-            action_prob = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
+
+            # Select action
+            action_prob = self.model(tf.expand_dims(state, axis=0))
             action = np.argmax(np.squeeze(action_prob))
+
+            # Interact with environment
             state, reward, done, _ = self.env.step(action)
+
+            # Bookkeeping
             total_reward += reward
             total_steps += 1
         return total_reward, total_steps

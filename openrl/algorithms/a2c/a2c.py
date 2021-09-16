@@ -144,18 +144,25 @@ class ActorCriticAgent:
             self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        total_reward, cur_step = 0, 0
+        total_reward, total_steps = 0, 0
         state = self.eval_env.reset()
         done = False
+
         while not done:
             if render:
                 self.eval_env.render()
-            cur_step += 1
-            action_prob, _ = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
+
+            # Select actions
+            action_prob, _ = self.model(tf.expand_dims(state, axis=0))
             action = np.argmax(np.squeeze(action_prob))
+
+            # Interact with environment
             state, reward, done, _ = self.eval_env.step(action)
+
+            # Bookkeeping
             total_reward += reward
-        return total_reward, cur_step
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:

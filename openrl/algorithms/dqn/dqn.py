@@ -172,8 +172,25 @@ class DQNAgent:
         return ep_rewards, cur_step
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            q_a_values = self.model(tf.expand_dims(state, axis=0))
+            action = np.argmax(np.squeeze(q_a_values))
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action)
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:

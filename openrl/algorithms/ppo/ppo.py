@@ -205,22 +205,27 @@ class PPOAgent:
                 grads = tape.gradient(critic_loss, self.critic_model.trainable_variables)
                 self.critic_optimizer.apply_gradients(zip(grads, self.critic_model.trainable_variables))
 
-    def run_agent(self) -> float:
-        # TODO >> Runs N Times!
-        total_rewards = []
-        for i in range(10):
-            state = tf.expand_dims(tf.convert_to_tensor(self.eval_env.reset()), 0)
-            done = False
-            ep_rewards = 0
-            while not done:
-                state = tf.reshape(state, [1, self.state_dims])
-                mu, std = self.actor_model(state)
-                dist = tfd.MultivariateNormalDiag(loc=mu, scale_diag=std)
-                action = dist.mean()[0]
-                state, reward, done, _ = self.eval_env.step(action)
-                ep_rewards += reward
-            total_rewards.append(ep_rewards)
-        return float(np.mean(total_rewards))
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, total_steps = 0, 0
+        state = self.eval_env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.eval_env.render()
+
+            # Select action
+            mu, std = self.actor_model(tf.expand_dims(state, axis=0))
+            dist = tfd.MultivariateNormalDiag(loc=mu, scale_diag=std)
+            action = dist.mean()
+
+            # Interact with environment
+            state, reward, done, _ = self.eval_env.step(action[0])
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
@@ -263,7 +268,7 @@ def main() -> None:
     for e in range(args.epochs):
         agent.train_episode()
 
-        eval_rews = agent.run_agent()
+        eval_rews, _ = agent.run_agent()
         if e == 0:
             running_reward = eval_rews
         else:

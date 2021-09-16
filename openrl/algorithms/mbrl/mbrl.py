@@ -299,8 +299,24 @@ class MBAgent:
         return mean_traj_rewards, total_num_steps, losses
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action = self.get_action(tf.expand_dims(state, axis=0), random=False)
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action[0])
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
@@ -348,6 +364,7 @@ def main() -> None:
     for e in range(args.epochs):
         # Run one episode
         ep_rew, ep_steps, ep_loss = agent.train_episode()
+        agent.run_agent()
 
         # Prepare for logging
         mean_ep_rew, max_ep_rew, min_ep_rew, std_ep_rew = np.mean(ep_rew), np.max(ep_rew), np.min(ep_rew), np.std(ep_rew)

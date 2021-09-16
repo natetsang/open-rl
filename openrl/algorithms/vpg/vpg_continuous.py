@@ -106,8 +106,26 @@ class VPGAgent:
         return ep_rewards, cur_step
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            mu, std = self.actor_model(tf.expand_dims(state, axis=0))
+            dist = tfd.MultivariateNormalDiag(loc=mu, scale_diag=std)
+            action = tf.clip_by_value(dist.mean(), clip_value_min=-2, clip_value_max=2.)
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action[0])
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:

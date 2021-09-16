@@ -102,22 +102,43 @@ class VPGAgent:
 
         return ep_rewards, cur_step
 
-    def run_agent(self) -> List[Tuple]:
-        # TODO >> So this is different than run_agent() in other scripts. This returns the transitions.
-        # TODO >> probably should rename this
-        trns = []
-
+    def run_agent(self, render=False) -> Tuple[float, int]:
+        total_reward, total_steps = 0, 0
         state = self.env.reset()
         done = False
+
         while not done:
-            action_prob, _ = self.model(tf.expand_dims(tf.convert_to_tensor(state), 0))
+            if render:
+                self.env.render()
+
+            # Select action
+            action_prob, _ = self.model(tf.expand_dims(state, axis=0))
             action = np.argmax(np.squeeze(action_prob))
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action)
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
+
+    def sample_trajectory(self) -> List[Tuple]:
+        traj = []
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            # Select action
+            action_prob, _ = self.model(tf.expand_dims(state, axis=0))
+            action = np.argmax(np.squeeze(action_prob))
+
+            # Interact with environment
             next_state, reward, done, _ = env.step(action)
 
-            trns.append((state, action, reward, next_state, done))
-
+            traj.append((state, action, reward, next_state, done))
             state = next_state
-        return trns
+        return traj
 
 
 if __name__ == '__main__':
@@ -173,7 +194,7 @@ if __name__ == '__main__':
     print("Generating expert dataset with trained policy!")
     transitions = []
     while len(transitions) < EXPERT_DATASET_SIZE_LIM:
-        tr = agent.run_agent()
+        tr = agent.sample_trajectory()
         transitions.extend(tr)
 
     print(f"Saving dataset to {EXPERT_DATASET_SAVE_PATH}")
