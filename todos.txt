@@ -5,9 +5,6 @@ Environment properties:
 each case
 * In argparse, require env_name to be one of several choices.... parser.add_argument('env', choices=('CartPole-v0', ...)
 
-Test agent:
-* Add run_agent() to Dyna-Q, Deep Dyna-Q, MCTS
-
 
 Saving:
 * Fix save_dir and load_dir to only work if we pass in the save_dir param
@@ -52,6 +49,8 @@ Round 4:
 ----------------------------------------------------------------------------------------------------------
 --------------------------------------------------DONE----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------
+
+* Add run_agent() to Dyna-Q, Deep Dyna-Q
 * Add, refactor, update run_agent() in all deep-RL agents
 * Move methods to compute returns to own file
 * Move obstacles_env.py into it's own folder
