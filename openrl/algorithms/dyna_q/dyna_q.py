@@ -264,7 +264,7 @@ def main() -> None:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument("--env", type=str, default="FrozenLake-v0")
+    parser.add_argument("--env", type=str, default="FrozenLake-v1")
     parser.add_argument("--epochs", type=int, default=3000)
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--num_planning_steps_per_iter", type=int, default=50)
