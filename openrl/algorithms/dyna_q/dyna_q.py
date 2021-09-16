@@ -41,22 +41,23 @@ class DynaQAgent:
         self.num_planning_steps_per_iter = train_kwargs.get("num_planning_steps_per_iter", 5)
         self.epsilon = 1.0
 
-    def get_action(self, state: np.ndarray, decay=True) -> np.ndarray:
+    def get_action(self, state: np.ndarray, greedy=False, decay=True) -> np.ndarray:
         """
-        Based on a given state, return an action using epsilon greedy. If decay is True, then
+        Based on a given state, return an action using epsilon greedy or greedy. If decay is True, then
         subsequently decay epsilon
+        :param greedy:
         :param state: the state for which we want to take an action
         :param decay: boolean indicating whether or not to decay epsilon after running
         :return: action to take
         """
         # Take action given current state
-        if np.random.random() > self.epsilon:
+        if greedy or np.random.random() > self.epsilon:
             q_values = self.Q_table[state]
             action = np.argmax(q_values)  # Take greedy action that maximizes Q
         else:
             action = np.random.randint(0, self.num_actions)  # Take random action
 
-        if decay:
+        if decay and not greedy:
             self.decay_epsilon()
         return action
 
@@ -179,8 +180,24 @@ class DynaQAgent:
         return ep_rewards, cur_step
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action = self.get_action(state, greedy=True)
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action)
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:

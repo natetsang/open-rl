@@ -122,23 +122,23 @@ class DDynaQAgent:
         else:
             self.target_q_model.set_weights(self.q_model.get_weights())
 
-    def get_action(self, state, decay=True) -> np.ndarray:
+    def get_action(self, state, greedy=False, decay=True) -> np.ndarray:
         """
         Based on a given state, return an action using epsilon greedy. If decay is True, then
         subsequently decay epsilon
+        :param greedy:
         :param state: the state for which we want to take an action
         :param decay: boolean indicating whether or not to decay epsilon after running
         :return: action to take
         """
         # Take action given current state
-        if np.random.random() > self.epsilon:
+        if greedy or np.random.random() > self.epsilon:
             q_values = self.q_model(state)
             action = np.argmax(q_values)  # Take greedy action that maximizes Q
         else:
             action = np.random.randint(0, self.num_actions)  # Take random action
 
-        if decay:
-            # Decay epsilon
+        if decay and not greedy:
             self.decay_epsilon()
         return action
 
@@ -391,8 +391,24 @@ class DDynaQAgent:
         return trajectory_rewards, trajectory_steps
 
     def run_agent(self, render=False) -> Tuple[float, int]:
-        # TODO
-        raise NotImplementedError
+        total_reward, total_steps = 0, 0
+        state = self.env.reset()
+        done = False
+
+        while not done:
+            if render:
+                self.env.render()
+
+            # Select action
+            action = self.get_action(tf.expand_dims(state, axis=0), greedy=True)
+
+            # Interact with environment
+            state, reward, done, _ = self.env.step(action)
+
+            # Bookkeeping
+            total_reward += reward
+            total_steps += 1
+        return total_reward, total_steps
 
 
 def main() -> None:
