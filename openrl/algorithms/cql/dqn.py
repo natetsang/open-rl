@@ -65,14 +65,15 @@ class DQNAgent:
 
         # Save directories
         self.save_dir = save_dir
+        self.save_dir_target = save_dir + "_target"
 
     def save_models(self) -> None:
         self.model.save(self.save_dir)
-        self.target_model.save(self.save_dir + "_target")
+        self.target_model.save(self.save_dir_target)
 
     def load_models(self) -> Tuple[tf.keras.Model, tf.keras.Model]:
         self.model = tf.keras.models.load_model(self.save_dir)
-        self.target_model = tf.keras.models.load_model(self.save_dir + "_target")
+        self.target_model = tf.keras.models.load_model(self.save_dir_target)
         return self.model, self.target_model
 
     def update_target_networks(self, use_polyak: bool = False) -> None:

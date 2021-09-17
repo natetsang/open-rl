@@ -44,15 +44,13 @@ class VPGAgent:
         self.actor_optimizer = actor_optimizer
         self.critic_optimizer = critic_optimizer
 
-        # Training vars
+        # Save directories
         self.save_dir_actor = save_dir + "_actor"
         self.save_dir_critic = save_dir + "_critic"
 
     def save_models(self) -> None:
-        # TODO >> Fix - Getting error
-        # self.actor_model.save(self.save_dir_actor)
-        # self.critic_model.save(self.save_dir_critic)
-        pass
+        self.actor_model.save(self.save_dir_actor)
+        self.critic_model.save(self.save_dir_critic)
 
     def load_models(self) -> Tuple[tf.keras.Model, tf.keras.Model]:
         self.actor_model = tf.keras.models.load_model(self.save_dir_actor)

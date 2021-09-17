@@ -99,9 +99,18 @@ class PPOAgent:
         self.actor_optimizer = actor_optimizer
         self.critic_optimizer = critic_optimizer
 
-        # Training vars
+        # Save directories
+        self.save_dir_actor = save_dir + "_actor"
+        self.save_dir_critic = save_dir + "_critic"
 
-        self.save_dir = save_dir
+    def save_models(self) -> None:
+        self.actor_model.save(self.save_dir_actor)
+        self.critic_model.save(self.save_dir_critic)
+
+    def load_models(self) -> Tuple[tf.keras.Model, tf.keras.Model]:
+        self.actor_model = tf.keras.models.load_model(self.save_dir_actor)
+        self.critic_model = tf.keras.models.load_model(self.save_dir_critic)
+        return self.actor_model, self.critic_model
 
     def rollout_policy(self) -> Tuple[tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor,
                                       tf.Tensor, tf.Tensor, tf.Tensor, tf.Tensor]:

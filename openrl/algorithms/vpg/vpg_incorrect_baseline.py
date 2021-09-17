@@ -42,12 +42,14 @@ class REINFORCEAgent:
                               num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                               hidden_size=model_kwargs.get("hidden_size"))
         self.optimizer = optimizer
+
+        # Save directories
         self.save_dir = save_dir
 
-    def save_model(self) -> None:
+    def save_models(self) -> None:
         self.model.save(self.save_dir)
 
-    def load_model(self) -> tf.keras.Model:
+    def load_models(self) -> tf.keras.Model:
         self.model = tf.keras.models.load_model(self.save_dir)
         return self.model
 
@@ -177,7 +179,7 @@ def main() -> None:
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
         if latest_mean_rewards > best_mean_rewards:
             best_mean_rewards = latest_mean_rewards
-            agent.save_model()
+            agent.save_models()
 
         if running_reward > 195:
             print("Solved at episode {}!".format(e))

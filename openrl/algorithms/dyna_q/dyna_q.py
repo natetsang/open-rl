@@ -24,7 +24,8 @@ class DynaQAgent:
     def __init__(self,
                  environment: gym.Env,
                  model_kwargs: dict = None,
-                 train_kwargs: dict = None) -> None:
+                 train_kwargs: dict = None,
+                 save_dir: str = None) -> None:
         # Env vars
         self.env = environment
         self.state_dims = model_kwargs.get('state_dims')
@@ -40,6 +41,22 @@ class DynaQAgent:
         # Training vars
         self.num_planning_steps_per_iter = train_kwargs.get("num_planning_steps_per_iter", 5)
         self.epsilon = 1.0
+
+        # Save directories
+        self.save_dir_q = save_dir + "_Q_table.npy"
+        self.save_dir_transition = save_dir + "_transition_table.npy"
+        self.save_dir_reward = save_dir + "_reward_table.npy"
+
+    def save_models(self) -> None:
+        np.save(self.save_dir_q, self.Q_table)
+        np.save(self.save_dir_transition, self.transition_table)
+        np.save(self.save_dir_reward, self.reward_table)
+
+    def load_models(self) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        self.Q_table = np.load(self.save_dir_q)
+        self.transition_table = np.load(self.save_dir_transition)
+        self.reward_table = np.load(self.save_dir_reward)
+        return self.Q_table, self.transition_table, self.reward_table
 
     def get_action(self, state: np.ndarray, greedy=False, decay=True) -> np.ndarray:
         """

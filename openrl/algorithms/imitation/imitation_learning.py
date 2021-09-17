@@ -63,6 +63,16 @@ class ImitationAgent:
         self.eval_batch_size = train_kwargs.get('eval_batch_size')  # Batch size for eval
         self.num_agent_train_steps_per_iter = train_kwargs.get('num_agent_train_steps_per_iter')  # Grad updates per run
 
+        # Save directories
+        self.save_dir = save_dir
+
+    def save_models(self) -> None:
+        self.model.save(self.save_dir)
+
+    def load_models(self) -> tf.keras.Model:
+        self.model = tf.keras.models.load_model(self.save_dir)
+        return self.model
+
     @staticmethod
     def load_expert_data(path):
         with open(path, 'rb') as f:

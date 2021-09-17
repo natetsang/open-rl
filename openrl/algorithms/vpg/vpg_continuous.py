@@ -48,7 +48,18 @@ class VPGAgent:
                                             hidden_size=model_kwargs.get("hidden_size"))
         self.critic_optimizer = critic_optimizer
 
-        self.save_dir = save_dir
+        # Save directories
+        self.save_dir_actor = save_dir + "_actor"
+        self.save_dir_critic = save_dir + "_critic"
+
+    def save_models(self) -> None:
+        self.actor_model.save(self.save_dir_actor)
+        self.critic_model.save(self.save_dir_critic)
+
+    def load_models(self) -> Tuple[tf.keras.Model, tf.keras.Model]:
+        self.actor_model = tf.keras.models.load_model(self.save_dir_actor)
+        self.critic_model = tf.keras.models.load_model(self.save_dir_critic)
+        return self.actor_model, self.critic_model
 
     def train_episode(self) -> Tuple[Union[float, int], int]:
         ep_rewards = 0

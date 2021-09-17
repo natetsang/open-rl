@@ -95,24 +95,30 @@ class SACAgent:
         self.tau = 0.005
 
         # Save directories
-        if save_dir:
-            self.save_dir_actor = save_dir + "_actor"
-            self.save_dir_critic = save_dir + "_critic"
+        self.save_dir_actor = save_dir + "_actor"
+        self.save_dir_critic = save_dir + "_critic"
 
     def save_models(self) -> None:
-        if self.save_dir_actor and self.save_dir_critic:
-            self.actor_model.save(self.save_dir_actor)
-            self.critic_model1.save(self.save_dir_critic)
-            self.target_actor_model.save(self.save_dir_actor + "_target")
-            self.target_critic_model1.save(self.save_dir_critic + "_target")
+        self.actor_model.save(self.save_dir_actor)
+        self.critic_model1.save(self.save_dir_critic + "1")
+        self.critic_model2.save(self.save_dir_critic + "2")
 
-    def load_models(self) -> Union[Tuple[tf.keras.Model, tf.keras.Model, tf.keras.Model, tf.keras.Model], None]:
-        if self.save_dir_actor and self.save_dir_critic:
-            self.actor_model = tf.keras.models.load_model(self.save_dir_actor)
-            self.critic_model1 = tf.keras.models.load_model(self.save_dir_critic)
-            self.target_actor_model = tf.keras.models.load_model(self.save_dir_actor + "_target")
-            self.target_critic_model1 = tf.keras.models.load_model(self.save_dir_critic + "_target")
-            return self.actor_model, self.target_actor_model, self.critic_model1, self.target_critic_model1
+        self.target_actor_model.save(self.save_dir_actor + "_target")
+        self.target_critic_model1.save(self.save_dir_critic + "_target1")
+        self.target_critic_model2.save(self.save_dir_critic + "_target2")
+
+    def load_models(self) -> Tuple[tf.keras.Model, tf.keras.Model, tf.keras.Model,
+                                   tf.keras.Model, tf.keras.Model, tf.keras.Model]:
+        self.actor_model = tf.keras.models.load_model(self.save_dir_actor)
+        self.critic_model1 = tf.keras.models.load_model(self.save_dir_critic + "1")
+        self.critic_model2 = tf.keras.models.load_model(self.save_dir_critic + "2")
+
+        self.target_actor_model = tf.keras.models.load_model(self.save_dir_actor + "_target")
+        self.target_critic_model1 = tf.keras.models.load_model(self.save_dir_critic + "_target1")
+        self.target_critic_model2 = tf.keras.models.load_model(self.save_dir_critic + "_target2")
+
+        return (self.actor_model, self.target_actor_model, self.critic_model1, self.target_critic_model1,
+                self.critic_model2, self.target_critic_model2)
 
     def update_target_networks(self) -> None:
         """

@@ -75,13 +75,16 @@ class ActorCriticWorker(threading.Thread):
         self.global_model = global_worker.local_model if global_worker else None
         self.global_optimizer = global_worker.local_optimizer if global_worker else None
 
-        # Save
+        # Save directories
         self.save_dir = save_dir
 
-    def save_model(self) -> None:
+    def save_models(self) -> None:
+        # TODO >> Should we save the local or global? Do we want to save each local model?
+        #   If so, how should we keep track of them
         self.local_model.save(self.save_dir)
 
-    def load_model(self) -> tf.keras.Model:
+    def load_models(self) -> tf.keras.Model:
+        # TODO >> Similar to above, do we want to load the local or global?
         self.local_model = tf.keras.models.load_model(self.save_dir)
         return self.local_model
 

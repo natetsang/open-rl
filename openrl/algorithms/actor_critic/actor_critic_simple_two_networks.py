@@ -45,6 +45,7 @@ class ActorCriticAgent:
         self.actor_optimizer = actor_optimizer
         self.critic_optimizer = critic_optimizer
 
+        # Save directories
         self.save_dir_actor = save_dir + "_actor"
         self.save_dir_critic = save_dir + "_critic"
 

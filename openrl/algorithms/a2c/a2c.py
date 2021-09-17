@@ -76,13 +76,15 @@ class ActorCriticAgent:
         self.n_steps = train_kwargs.get("n_steps", 10)
         self.use_gae = train_kwargs.get("use_gae", True)
 
+        # Save directories
         self.save_dir = save_dir
 
-    def save_model(self) -> None:
+    def save_models(self) -> None:
         self.model.save(self.save_dir)
 
-    def load_model(self) -> None:
-        self.model.save(self.save_dir)
+    def load_models(self) -> tf.keras.Model:
+        self.model = tf.keras.models.load_model(self.save_dir)
+        return self.model
 
     def train_episode(self):
         # Calculate number of gradient updates per episode
@@ -226,7 +228,7 @@ def main() -> None:
             latest_mean_rewards = np.mean(ep_rewards_history[-10:])
             if latest_mean_rewards > best_mean_rewards:
                 best_mean_rewards = latest_mean_rewards
-                agent.save_model()
+                agent.save_models()
 
             if running_reward > 195:
                 print("Solved at episode {}!".format(e))

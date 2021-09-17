@@ -51,6 +51,7 @@ class ActorCriticAgent:
         self.n_steps = train_kwargs.get("n_steps", 10)
         self.use_gae = train_kwargs.get("use_gae", True)
 
+        # Save directories
         self.save_dir_actor = save_dir + "_actor"
         self.save_dir_critic = save_dir + "_critic"
 

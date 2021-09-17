@@ -43,12 +43,15 @@ class VPGAgent:
                               hidden_size=model_kwargs.get("hidden_size"))
         self.optimizer = optimizer
 
+        # Save directories
         self.save_dir = save_dir
 
-    def save_model(self) -> None:
+    def save_models(self) -> None:
+        # TODO - I'm saving the weights b/c I was getting an error doing the whole model
+        #   But I should eventually see if the newer version won't cause an error!
         self.model.save_weights(self.save_dir)
 
-    def load_model(self) -> tf.keras.Model:
+    def load_models(self) -> tf.keras.Model:
         self.model = tf.keras.models.load_model(self.save_dir)
         return self.model
 
@@ -203,4 +206,4 @@ if __name__ == '__main__':
 
     # Save expert policy
     print(f"Saving expert policy model to {EXPERT_POLICY_SAVE_PATH}")
-    agent.save_model()
+    agent.save_models()
