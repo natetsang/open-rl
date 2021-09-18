@@ -7,7 +7,7 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from models.models import actor_fc_discrete_network
 from algorithms.reinforce.utils import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -94,7 +94,7 @@ class REINFORCEAgent:
         logs = dict()
         logs['ep_rewards'] = ep_rewards
         logs['ep_steps'] = cur_step
-        logs['ep_mean_actor_loss'] = tf.reduce_mean(actor_loss)
+        logs['ep_total_loss'] = total_loss
         return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
@@ -162,14 +162,14 @@ def main() -> None:
         # Track progress
         ep_rew = train_logs['ep_rewards']
         ep_steps = train_logs['ep_steps']
-        ep_actor_losses = train_logs['ep_mean_actor_loss']
+        ep_losses = train_logs['ep_total_loss']
 
-        running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
-        ep_loss_history.append(ep_actor_losses)
+        ep_loss_history.append(ep_losses)
         ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:

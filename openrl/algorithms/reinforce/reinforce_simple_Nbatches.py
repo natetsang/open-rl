@@ -6,7 +6,7 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from models.models import actor_fc_discrete_network
 from algorithms.reinforce.utils import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -101,9 +101,9 @@ class REINFORCEAgent:
         self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
         logs = dict()
-        logs['ep_mean_rewards'] = np.mean(ep_rewards)
-        logs['ep_mean_steps'] = cur_step / self.batch_size
-        logs['ep_mean_actor_loss'] = mean_trajectory_loss
+        logs['mean_ep_rewards'] = np.mean(ep_rewards)
+        logs['mean_ep_steps'] = cur_step / self.batch_size
+        logs['mean_ep_total_loss'] = tf.reduce_sum(ep_loss) / self.batch_size
         return logs
         # return float(np.mean(ep_rewards)), cur_step  # TODO >> maybe we return the mean_ep_reward from the batch
 
@@ -170,16 +170,16 @@ def main() -> None:
         train_logs = agent.train_episode()
 
         # Track progress
-        ep_rew = train_logs['ep_mean_rewards']
-        ep_steps = train_logs['ep_mean_steps']
-        ep_actor_losses = train_logs['ep_mean_actor_loss']
+        ep_rew = train_logs['mean_ep_rewards']
+        ep_steps = train_logs['mean_ep_steps']
+        ep_losses = train_logs['mean_ep_total_loss']
 
-        running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
-        ep_loss_history.append(ep_actor_losses)
+        ep_loss_history.append(ep_losses)
         ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
