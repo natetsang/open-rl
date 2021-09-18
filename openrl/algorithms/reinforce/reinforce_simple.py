@@ -35,6 +35,8 @@ class REINFORCEAgent:
                               num_hidden_layers=model_kwargs.get("num_hidden_layers"),
                               hidden_size=model_kwargs.get("hidden_size"))
         self.optimizer = optimizer
+
+        # Save directories
         self.save_dir = save_dir
 
     def save_models(self) -> None:

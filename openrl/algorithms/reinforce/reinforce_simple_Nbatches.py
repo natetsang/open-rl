@@ -39,6 +39,7 @@ class REINFORCEAgent:
         # Training vars
         self.batch_size = train_kwargs.get("batch_size", 1)
 
+        # Save directories
         self.save_dir = save_dir
 
     def save_models(self) -> None:

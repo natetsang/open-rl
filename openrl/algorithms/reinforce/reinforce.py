@@ -40,6 +40,7 @@ class REINFORCEAgent:
         self.max_steps_per_epoch = train_kwargs.get("max_steps_per_epoch", 1000)
         self.gae_steps = train_kwargs.get("gae_steps", 10)
 
+        # Save directories
         self.save_dir = save_dir
 
     def save_models(self) -> None:
