@@ -6,7 +6,7 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from models.models import actor_fc_discrete_network, critic_fc_network
 from algorithms.vpg.utils import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -60,7 +60,7 @@ class VPGAgent:
         self.critic_model = tf.keras.models.load_model(self.save_dir_critic)
         return self.actor_model, self.critic_model
 
-    def train_episode(self) -> Tuple[Union[float, int], int]:
+    def train_episode(self) -> dict:
         with tf.GradientTape() as actor_tape, tf.GradientTape() as critic_tape:
             ep_rewards = [0 for _ in range(self.batch_size)]
             ep_actor_loss, ep_critic_loss = [], []
@@ -118,7 +118,11 @@ class VPGAgent:
         critic_grads = critic_tape.gradient(mean_critic_trajectory_loss, self.critic_model.trainable_variables)
         self.critic_optimizer.apply_gradients(zip(critic_grads, self.critic_model.trainable_variables))
 
-        return float(np.mean(ep_rewards)), cur_step
+        logs = dict()
+        logs['mean_ep_rewards'] = np.mean(ep_rewards)
+        logs['mean_ep_steps'] = cur_step / self.batch_size
+        logs['mean_ep_total_loss'] = tf.reduce_sum(ep_actor_loss) / self.batch_size
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -173,24 +177,30 @@ def main() -> None:
                      save_dir=args.model_checkpoint_dir)
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
-    ep_steps_history = []
     ep_running_rewards_history = []
+    ep_steps_history = []
+    ep_loss_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
         # Train one episode
-        ep_rew, ep_steps = agent.train_episode()
-        ep_wallclock_history.append(time.time() - start)
+        train_logs = agent.train_episode()
 
         # Track progress
-        running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['mean_ep_rewards']
+        ep_steps = train_logs['mean_ep_steps']
+        ep_losses = train_logs['mean_ep_total_loss']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_loss_history.append(ep_losses)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
             template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
@@ -212,6 +222,7 @@ def main() -> None:
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
+                          loss_history=ep_loss_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
 
@@ -219,8 +230,8 @@ def main() -> None:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--epochs", type=int, default=250)
     parser.add_argument("--batch_size", type=int, default=5)
+    parser.add_argument("--epochs", type=int, default=250)
     parser.add_argument("--seed", type=int)
     parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
     args = parser.parse_args()
