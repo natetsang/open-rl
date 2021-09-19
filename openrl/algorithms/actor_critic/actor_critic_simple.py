@@ -47,7 +47,7 @@ class ActorCriticAgent:
         self.model = tf.keras.models.load_model(self.save_dir)
         return self.model
 
-    def train_episode(self) -> Tuple[Union[float, int], int]:
+    def train_episode(self) -> dict:
         ep_rewards = 0
         state = self.env.reset()
         done = False
@@ -95,7 +95,11 @@ class ActorCriticAgent:
             grads = tape.gradient(total_loss, self.model.trainable_variables)
             self.optimizer.apply_gradients(zip(grads, self.model.trainable_variables))
 
-        return ep_rewards, cur_step
+        logs = dict()
+        logs['ep_rewards'] = ep_rewards
+        logs['ep_steps'] = cur_step
+        logs['ep_total_loss'] = total_loss
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -146,28 +150,33 @@ def main() -> None:
                              )
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
-    ep_steps_history = []
     ep_running_rewards_history = []
+    ep_steps_history = []
+    ep_loss_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
         # Train one episode
-        ep_rew, ep_steps = agent.train_episode()
-        ep_wallclock_history.append(time.time() - start)
+        train_logs = agent.train_episode()
 
         # Track progress
-        running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['ep_rewards']
+        ep_steps = train_logs['ep_steps']
+        ep_losses = train_logs['ep_total_loss']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_loss_history.append(ep_losses)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
+            print(f"EPISODE {e} | running reward: {running_reward:.2f} - episode reward: {ep_rew:.2f}")
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
         if latest_mean_rewards > best_mean_rewards:
@@ -185,6 +194,7 @@ def main() -> None:
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
+                          loss_history=ep_loss_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
 
@@ -193,7 +203,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="CartPole-v0")
     parser.add_argument("--epochs", type=int, default=800)
-    parser.add_argument("--seed", type=int)
+    parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
     args = parser.parse_args()
 
