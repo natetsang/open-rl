@@ -3,10 +3,10 @@ from typing import Tuple, Union
 
 
 class BaseAgent:
-    def run_episode(self):
+    def run_episode(self) -> dict:
         raise NotImplementedError
 
-    def run_agent(self):
+    def run_agent(self) -> Tuple[float, int]:
         raise NotImplementedError
 
     def save_models(self) -> None:
