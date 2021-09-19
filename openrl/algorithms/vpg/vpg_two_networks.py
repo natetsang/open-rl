@@ -97,7 +97,7 @@ class VPGAgent:
             advantages = returns - value_trajectory
 
             # Calculate losses
-            # Do I need to reduce these??
+            # TODO >> Do I need to reduce these??
             actor_loss = tf.reduce_mean(-tf.math.log(action_prob_trajectory) * tf.stop_gradient(advantages))
             critic_loss = tf.reduce_mean(tf.square(advantages))
 
