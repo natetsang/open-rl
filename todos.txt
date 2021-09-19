@@ -17,10 +17,10 @@ this will be more consistent
 
 
 Plotting:
-* Fix plots! There are still several issues
-* No consistency in plotting!
-* Move logic to utils/utils.py where appropriate
-* Update the main() method to call sample_trajectory() at a certain cadence for plotting
+* Plotting fixed for the folders: reinforce, vpg, actor_critic, dqn, ddpg, td3, sac, drqn
+--> Still need to fix the remaining!
+
+* Update the main() method to call run_agent() at a certain cadence for plotting
 
 
 Other:
@@ -49,7 +49,7 @@ Round 4:
 ----------------------------------------------------------------------------------------------------------
 --------------------------------------------------DONE----------------------------------------------------
 ----------------------------------------------------------------------------------------------------------
-
+* Move plotting logic to util folder where appropriate
 * Add run_agent() to Dyna-Q, Deep Dyna-Q
 * Add, refactor, update run_agent() in all deep-RL agents
 * Move methods to compute returns to own file
