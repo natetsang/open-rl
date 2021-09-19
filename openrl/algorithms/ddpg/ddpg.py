@@ -3,9 +3,10 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from algorithms.ddpg.models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
-from algorithms.ddpg.utils import OUActionNoise, plot_training_results
+from algorithms.ddpg.utils import OUActionNoise
+from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
 
 # Set up
@@ -98,7 +99,7 @@ class DDPGAgent:
             new_weights.append(self.tau * weights + (1 - self.tau) * target_weights)
         self.target_critic_model.set_weights(new_weights)
 
-    def train_episode(self, noise: OUActionNoise) -> Tuple[Union[float, int], int]:
+    def train_episode(self, noise: OUActionNoise) -> dict:
         ep_rewards = 0
         state = tf.expand_dims(tf.convert_to_tensor(self.env.reset()), 0)
         done = False
@@ -150,7 +151,12 @@ class DDPGAgent:
             # "slow" update of target weights
             self.update_target_networks()
             state = next_state
-        return ep_rewards, cur_step
+
+        logs = dict()
+        logs['ep_rewards'] = ep_rewards
+        logs['ep_steps'] = cur_step
+        logs['ep_total_loss'] = actor_loss if batch_transitions else None
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -210,31 +216,33 @@ def main() -> None:
                       save_dir=args.model_checkpoint_dir)
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
-    ep_steps_history = []
     ep_running_rewards_history = []
+    ep_steps_history = []
+    ep_loss_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
-        ep_rew, ep_steps = agent.train_episode(ou_noise)
-
-        ep_wallclock_history.append(time.time() - start)
+        # Train one episode
+        train_logs = agent.train_episode(ou_noise)  # TODO >> Move the noise object into the DDPGAgent instantiation
 
         # Track progress
-        if e == 0:
-            running_reward = ep_rew
-        else:
-            running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['ep_rewards']
+        ep_steps = train_logs['ep_steps']
+        ep_losses = train_logs['ep_total_loss']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_loss_history.append(ep_losses)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
+            print(f"EPISODE {e} | running reward: {running_reward:.2f} - episode reward: {ep_rew:.2f}")
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
         if latest_mean_rewards > best_mean_rewards:
@@ -245,13 +253,14 @@ def main() -> None:
             print("Solved at episode {}!".format(e))
             break
 
-        # Now that we've completed training, let's plot the results
+    # Now that we've completed training, let's plot the results
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
 
     # Plot summary of results
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
+                          loss_history=ep_loss_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
 
