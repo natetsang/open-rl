@@ -7,9 +7,9 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from algorithms.dqn.models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
-from algorithms.dqn.utils import plot_training_results
+from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
 
 # Set up

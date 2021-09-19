@@ -10,7 +10,7 @@ import numpy as np
 import tensorflow as tf
 from typing import List, Callable, Tuple
 from models.models import actor_critic_fc_discrete_network
-from algorithms.vpg.utils import plot_training_results
+from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
 
 

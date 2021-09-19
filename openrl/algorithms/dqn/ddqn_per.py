@@ -9,7 +9,8 @@ import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
 from algorithms.dqn.models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
-from algorithms.dqn.utils import PrioritizedReplayBuffer, plot_training_results
+from algorithms.dqn.utils import PrioritizedReplayBuffer
+from util.plotting import plot_training_results
 
 
 # Set up

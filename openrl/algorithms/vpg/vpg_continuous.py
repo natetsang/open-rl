@@ -5,7 +5,7 @@ for continuous action spaces!
 """
 from typing import Callable, Tuple
 from models.models import actor_fc_continuous_network, critic_fc_network
-from algorithms.vpg.utils import plot_training_results
+from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
 
 import gym
