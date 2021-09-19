@@ -9,9 +9,10 @@ import time
 import argparse
 import numpy as np
 import tensorflow as tf
-from typing import Union, Callable, Tuple
+from typing import Callable, Tuple
 from algorithms.drqn.models import drqn_discrete_network
-from algorithms.drqn.utils import ReplayBuffer, plot_training_results
+from algorithms.drqn.utils import ReplayBuffer
+from util.plotting import plot_training_results
 
 
 # Set up
@@ -151,7 +152,7 @@ class DQNAgent:
         states[-1] = next_state  # The newest state is always at the end!
         return states
 
-    def train_episode(self) -> Tuple[Union[float, int], int]:
+    def train_episode(self) -> dict:
         ep_rewards = 0
         init_state = np.zeros([self.history_length, self.state_dims])
         state = self.update_states(init_state, self.env.reset())
@@ -210,7 +211,12 @@ class DQNAgent:
                 self.update_target_networks(use_polyak=self.use_polyak)
 
             state = next_state
-        return ep_rewards, cur_step
+
+        logs = dict()
+        logs['ep_rewards'] = ep_rewards
+        logs['ep_steps'] = cur_step
+        logs['ep_total_loss'] = critic_loss if batch_transitions else None
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -277,31 +283,33 @@ def main() -> None:
                      save_dir=args.model_checkpoint_dir)
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
-    ep_steps_history = []
     ep_running_rewards_history = []
+    ep_steps_history = []
+    ep_loss_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
-        ep_rew, ep_steps = agent.train_episode()
-        agent.run_agent()
-        ep_wallclock_history.append(time.time() - start)
+        # Train one episode
+        train_logs = agent.train_episode()
 
         # Track progress
-        if e == 0:
-            running_reward = ep_rew
-        else:
-            running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['ep_rewards']
+        ep_steps = train_logs['ep_steps']
+        ep_losses = train_logs['ep_total_loss']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_loss_history.append(ep_losses)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
+            print(f"EPISODE {e} | running reward: {running_reward:.2f} - episode reward: {ep_rew:.2f}")
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
         if latest_mean_rewards > best_mean_rewards:
@@ -312,21 +320,22 @@ def main() -> None:
             print("Solved at episode {}!".format(e))
             break
 
-        # Now that we've completed training, let's plot the results
+    # Now that we've completed training, let's plot the results
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
 
     # Plot summary of results
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
+                          loss_history=ep_loss_history,
                           wallclock_history=ep_wallclock_history,
-                          save_dir="../dqn/results.png")
+                          save_dir="./results.png")
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("--env", type=str, default="CartPole-v0")
-    parser.add_argument("--epochs", type=int, default=600)
+    parser.add_argument("--epochs", type=int, default=6)
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--history_length", type=int, default=4)
     parser.add_argument("--model_checkpoint_dir", type=str, default="./model_chkpt")
