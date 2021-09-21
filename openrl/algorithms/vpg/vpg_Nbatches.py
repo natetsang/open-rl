@@ -7,6 +7,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import List, Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_critic_fc_discrete_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -38,7 +40,7 @@ def compute_returns(rewards: List) -> List:
     return discounted_rewards
 
 
-class VPGAgent:
+class VPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],

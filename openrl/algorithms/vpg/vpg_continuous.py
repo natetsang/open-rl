@@ -4,6 +4,8 @@ This is implemented correctly but doesn't learn. We need a better algo
 for continuous action spaces!
 """
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_fc_continuous_network, critic_fc_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -22,7 +24,7 @@ GAMMA = 0.99
 LEARNING_RATE = 0.01
 
 
-class VPGAgent:
+class VPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  actor_model_fn: Callable[..., tf.keras.Model],

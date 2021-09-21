@@ -9,6 +9,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import List, Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_critic_fc_discrete_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -24,7 +26,7 @@ def compute_baseline(rewards: List) -> List:
     return [np.mean(rewards[i:]) for i in range(len(rewards))]
 
 
-class REINFORCEAgent:
+class VPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],
@@ -146,15 +148,15 @@ def main() -> None:
 
     # Create agent
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
-    agent = REINFORCEAgent(environment=env,
-                           model_fn=actor_critic_fc_discrete_network,
-                           optimizer=opt,
-                           model_kwargs=dict(state_dims=_state_dims,
-                                             num_actions=_num_actions,
-                                             num_hidden_layers=2,
-                                             hidden_size=128),
-                           save_dir=args.model_checkpoint_dir,
-                           )
+    agent = VPGAgent(environment=env,
+                     model_fn=actor_critic_fc_discrete_network,
+                     optimizer=opt,
+                     model_kwargs=dict(state_dims=_state_dims,
+                                       num_actions=_num_actions,
+                                       num_hidden_layers=2,
+                                       hidden_size=128),
+                     save_dir=args.model_checkpoint_dir,
+                     )
 
     # Run training
     best_mean_rewards = -float('inf')

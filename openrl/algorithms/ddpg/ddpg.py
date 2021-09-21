@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.ddpg.models import ddpg_actor_fc_continuous_network, ddpg_critic_fc_continuous_network
 from algorithms.ddpg.utils import OUActionNoise
 from util.plotting import plot_training_results
@@ -15,7 +17,7 @@ ACTOR_LEARNING_RATE = 0.0001
 CRITIC_LEARNING_RATE = 0.001
 
 
-class DDPGAgent:
+class DDPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  actor_model_fn: Callable[..., tf.keras.Model],

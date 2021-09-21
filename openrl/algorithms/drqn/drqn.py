@@ -10,6 +10,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.drqn.models import drqn_discrete_network
 from algorithms.drqn.utils import ReplayBuffer
 from util.plotting import plot_training_results
@@ -24,7 +26,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 
-class DQNAgent:
+class DRQNAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],
@@ -269,18 +271,18 @@ def main() -> None:
     opt = tf.keras.optimizers.Adam(learning_rate=LEARNING_RATE)
 
     # Create agent
-    agent = DQNAgent(environment=env,
-                     model_fn=model_func,
-                     optimizer=opt,
-                     replay_buffer=buffer,
-                     model_kwargs=dict(history_length=args.history_length,
-                                       state_dims=_state_dims,
-                                       num_actions=_num_actions,
-                                       num_hidden_layers=2,
-                                       hidden_size=256),
-                     train_kwargs=dict(target_update_freq=20,
-                                       use_polyak=False),
-                     save_dir=args.model_checkpoint_dir)
+    agent = DRQNAgent(environment=env,
+                      model_fn=model_func,
+                      optimizer=opt,
+                      replay_buffer=buffer,
+                      model_kwargs=dict(history_length=args.history_length,
+                                        state_dims=_state_dims,
+                                        num_actions=_num_actions,
+                                        num_hidden_layers=2,
+                                        hidden_size=256),
+                      train_kwargs=dict(target_update_freq=20,
+                                        use_polyak=False),
+                      save_dir=args.model_checkpoint_dir)
 
     # Run training
     best_mean_rewards = -float('inf')

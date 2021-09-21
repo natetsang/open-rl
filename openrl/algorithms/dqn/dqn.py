@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.dqn.models import dqn_fc_discrete_network, dueling_dqn_fc_discrete_network
 from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
@@ -21,7 +23,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 
-class DQNAgent:
+class DQNAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],

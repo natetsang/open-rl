@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_fc_discrete_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -17,7 +19,7 @@ GAMMA = 0.99
 LEARNING_RATE = 0.001
 
 
-class REINFORCEAgent:
+class REINFORCEAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],

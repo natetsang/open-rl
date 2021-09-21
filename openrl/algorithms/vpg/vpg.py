@@ -7,6 +7,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_critic_fc_discrete_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -19,7 +21,7 @@ ACTOR_LOSS_WEIGHT = 1.0
 CRITIC_LOSS_WEIGHT = 0.1
 
 
-class VPGAgent:
+class VPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_fn: Callable[..., tf.keras.Model],

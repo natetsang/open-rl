@@ -7,6 +7,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from models.models import actor_fc_discrete_network, critic_fc_network
 from util.plotting import plot_training_results
 from util.compute_returns import compute_returns_simple
@@ -17,7 +19,7 @@ ACTOR_LEARNING_RATE = 0.001
 CRITIC_LEARNING_RATE = 0.001
 
 
-class VPGAgent:
+class VPGAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  actor_model_fn: Callable[..., tf.keras.Model],

@@ -7,6 +7,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 from typing import Callable, Tuple, Generator
+
+from agents.base_agent import BaseAgent
 from multiprocessing_env import SubprocVecEnv
 from models.models import actor_fc_continuous_network, critic_fc_network
 from util.compute_returns import compute_gae_returns
@@ -68,7 +70,7 @@ def sample_batch_generator(mini_batch_size: int, states: tf.Tensor, actions: tf.
         )
 
 
-class PPOAgent:
+class PPOAgent(BaseAgent):
     def __init__(self,
                  environments: SubprocVecEnv,
                  eval_env: gym.Env,

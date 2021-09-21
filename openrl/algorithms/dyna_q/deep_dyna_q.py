@@ -8,6 +8,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.dyna_q.models import (dqn_fc_discrete_network, dueling_dqn_fc_discrete_network,
                                       fc_transition_network, fc_reward_network)
 from util.plotting import plot_training_results
@@ -23,7 +25,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 
-class DDynaQAgent:
+class DDynaQAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  q_model_fn: Callable[..., tf.keras.Model],

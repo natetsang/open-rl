@@ -8,6 +8,8 @@ import time
 import argparse
 import numpy as np
 from typing import Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.dyna_q.utils import plot_training_results
 
 
@@ -20,7 +22,7 @@ EPSILON_DECAY = 0.99975
 MIN_EPSILON = 0.001
 
 
-class DynaQAgent:
+class DynaQAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  model_kwargs: dict = None,

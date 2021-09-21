@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Union, Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.td3.models import td3_actor_fc_continuous_network, td3_critic_fc_continuous_network
 from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
@@ -14,7 +16,7 @@ ACTOR_LEARNING_RATE = 0.0001
 CRITIC_LEARNING_RATE = 0.001
 
 
-class TD3Agent:
+class TD3Agent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  actor_model_fn: Callable[..., tf.keras.Model],

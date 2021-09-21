@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import tensorflow as tf
 from typing import Callable, Tuple
+
+from agents.base_agent import BaseAgent
 from algorithms.sac.models import sac_actor_fc_continuous_network, sac_critic_fc_continuous_network
 from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
@@ -22,7 +24,7 @@ LOG_STD_MAX = 2
 NUM_EPISODES = 101
 
 
-class SACAgent:
+class SACAgent(BaseAgent):
     def __init__(self,
                  environment: gym.Env,
                  actor_model_fn: Callable[..., tf.keras.Model],
