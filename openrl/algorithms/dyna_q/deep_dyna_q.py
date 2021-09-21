@@ -10,7 +10,7 @@ import tensorflow as tf
 from typing import Union, Callable, Tuple
 from algorithms.dyna_q.models import (dqn_fc_discrete_network, dueling_dqn_fc_discrete_network,
                                       fc_transition_network, fc_reward_network)
-from algorithms.dyna_q.utils import plot_training_results
+from util.plotting import plot_training_results
 from util.replay_buffer import ReplayBuffer
 
 
@@ -148,7 +148,7 @@ class DDynaQAgent:
             self.epsilon *= EPSILON_DECAY
             self.epsilon = max(MIN_EPSILON, self.epsilon)
 
-    def direct_rl(self) -> Tuple[Union[float, int], int, np.ndarray]:
+    def direct_rl(self) -> Tuple[Union[float, int], int, np.ndarray, float]:
         """
         Run "direct RL" which is equivalent to one episode of DQN.
         :return:
@@ -211,7 +211,7 @@ class DDynaQAgent:
                 self.update_target_networks(use_polyak=self.use_polyak)
 
             state = next_state
-        return ep_rewards, cur_step, state
+        return ep_rewards, cur_step, critic_loss, state
 
     def world_model_learning(self) -> None:
         """
@@ -380,7 +380,7 @@ class DDynaQAgent:
         :return:
         """
         # Step 1: Direct RL
-        trajectory_rewards, trajectory_steps, s = self.direct_rl()
+        trajectory_rewards, trajectory_steps, critic_loss, s = self.direct_rl()
 
         # Step 2: Improve the dynamics model
         self.world_model_learning()
@@ -392,6 +392,7 @@ class DDynaQAgent:
         logs = dict()
         logs['ep_rewards'] = trajectory_rewards
         logs['ep_steps'] = trajectory_steps
+        logs['ep_critic_loss'] = critic_loss
         return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
@@ -475,6 +476,7 @@ def main() -> None:
     ep_rewards_history = []
     ep_steps_history = []
     ep_running_rewards_history = []
+    ep_loss_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
@@ -484,12 +486,14 @@ def main() -> None:
         # Track progress
         ep_rew = train_logs['ep_rewards']
         ep_steps = train_logs['ep_steps']
+        ep_losses = train_logs['ep_critic_loss']
 
         running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_loss_history.append(ep_losses)
         ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
@@ -511,6 +515,7 @@ def main() -> None:
     plot_training_results(rewards_history=ep_rewards_history,
                           running_rewards_history=ep_running_rewards_history,
                           steps_history=ep_steps_history,
+                          loss_history=ep_loss_history,
                           wallclock_history=ep_wallclock_history,
                           save_dir="./results.png")
 
