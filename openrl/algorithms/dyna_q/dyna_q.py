@@ -7,7 +7,7 @@ import gym
 import time
 import argparse
 import numpy as np
-from typing import Union, Tuple
+from typing import Tuple
 from algorithms.dyna_q.utils import plot_training_results
 
 
@@ -159,7 +159,7 @@ class DynaQAgent:
 
             state = next_state
 
-    def train_episode(self, use_trajectory_sampling=True) -> Tuple[Union[float, int], int]:
+    def train_episode(self, use_trajectory_sampling=True) -> dict:
         """ Run 1 episode of Dyna-Q. """
         ep_rewards = 0
         state = self.env.reset()
@@ -194,7 +194,11 @@ class DynaQAgent:
                 self.planning()
 
             state = next_state
-        return ep_rewards, cur_step
+
+        logs = dict()
+        logs['ep_rewards'] = ep_rewards
+        logs['ep_steps'] = cur_step
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -236,39 +240,41 @@ def main() -> None:
                        train_kwargs=dict(num_planning_steps_per_iter=args.num_planning_steps_per_iter))
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
-    ep_steps_history = []
     ep_running_rewards_history = []
+    ep_steps_history = []
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
-        ep_rew, ep_steps = agent.train_episode(use_trajectory_sampling=False)
-
-        ep_wallclock_history.append(time.time() - start)
+        # Train one episode
+        train_logs = agent.train_episode(use_trajectory_sampling=False)
 
         # Track progress
-        if e == 0:
-            running_reward = ep_rew
-        else:
-            running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['ep_rewards']
+        ep_steps = train_logs['ep_steps']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
+            print(f"EPISODE {e} | running reward: {running_reward:.2f} - episode reward: {ep_rew:.2f}")
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
+        if latest_mean_rewards > best_mean_rewards:
+            best_mean_rewards = latest_mean_rewards
+            agent.save_models()
 
         if running_reward > 0.78:
             print("Solved at episode {}!".format(e))
             break
 
-        # Now that we've completed training, let's plot the results
+    # Now that we've completed training, let's plot the results
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
 
     # Plot summary of results

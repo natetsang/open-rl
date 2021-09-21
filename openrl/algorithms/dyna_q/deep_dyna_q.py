@@ -371,7 +371,7 @@ class DDynaQAgent:
         grads = tape.gradient(critic_loss, self.q_model.trainable_variables)
         self.q_optimizer.apply_gradients(zip(grads, self.q_model.trainable_variables))
 
-    def train_episode(self) -> Tuple[Union[float, int], int]:
+    def train_episode(self) -> dict:
         """
         Run 1 episode of Dyna-Q.
         In this implementation, I'm training the models and doing the planning AFTER direct RL.
@@ -389,7 +389,10 @@ class DDynaQAgent:
         for _ in range(self.num_planning_steps_per_iter):
             self.planning(use_trajectory_sampling=False, initial_state=s)
 
-        return trajectory_rewards, trajectory_steps
+        logs = dict()
+        logs['ep_rewards'] = trajectory_rewards
+        logs['ep_steps'] = trajectory_steps
+        return logs
 
     def run_agent(self, render=False) -> Tuple[float, int]:
         total_reward, total_steps = 0, 0
@@ -467,7 +470,7 @@ def main() -> None:
                         save_dir=args.model_checkpoint_dir)
 
     # Run training
-    best_mean_rewards = -1e8
+    best_mean_rewards = -float('inf')
     running_reward = 0
     ep_rewards_history = []
     ep_steps_history = []
@@ -475,23 +478,22 @@ def main() -> None:
     ep_wallclock_history = []
     start = time.time()
     for e in range(args.epochs):
-        ep_rew, ep_steps = agent.train_episode()
-
-        ep_wallclock_history.append(time.time() - start)
+        # Train one episode
+        train_logs = agent.train_episode()
 
         # Track progress
-        if e == 0:
-            running_reward = ep_rew
-        else:
-            running_reward = 0.05 * ep_rew + (1 - 0.05) * running_reward
+        ep_rew = train_logs['ep_rewards']
+        ep_steps = train_logs['ep_steps']
+
+        running_reward = ep_rew if e == 0 else 0.05 * ep_rew + (1 - 0.05) * running_reward
 
         ep_rewards_history.append(ep_rew)
         ep_running_rewards_history.append(running_reward)
         ep_steps_history.append(ep_steps)
+        ep_wallclock_history.append(time.time() - start)
 
         if e % 10 == 0:
-            template = "running reward: {:.2f} | episode reward: {:.2f} at episode {}"
-            print(template.format(running_reward, ep_rew, e))
+            print(f"EPISODE {e} | running reward: {running_reward:.2f} - episode reward: {ep_rew:.2f}")
 
         latest_mean_rewards = np.mean(ep_rewards_history[-10:])
         if latest_mean_rewards > best_mean_rewards:
@@ -502,7 +504,7 @@ def main() -> None:
             print("Solved at episode {}!".format(e))
             break
 
-        # Now that we've completed training, let's plot the results
+    # Now that we've completed training, let's plot the results
     print(f"Training time elapsed (sec): {round(time.time() - start, 2)}")
 
     # Plot summary of results

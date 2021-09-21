@@ -45,9 +45,10 @@ def plot_training_results(rewards_history: List,
     ax4.set_ylabel("Episode duration (steps)")
     ax4.grid()
 
-    fig.tight_layout()
-    fig.subplots_adjust(top=0.94)
-    plt.show()
-
+    # Save
     if save_dir:
         plt.savefig(save_dir)
+
+    # Show plots
+    plt.tight_layout()
+    plt.show()
