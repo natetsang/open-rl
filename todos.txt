@@ -17,7 +17,7 @@ this will be more consistent
 
 
 Plotting:
-* Plotting fixed for the folders: reinforce, vpg, actor_critic, dqn, ddpg, td3, sac, drqn
+* Plotting fixed for the folders: reinforce, vpg, actor_critic, dqn, ddpg, td3, sac, drqn, dyna-q
 --> Still need to fix the remaining!
 
 * Update the main() method to call run_agent() at a certain cadence for plotting
