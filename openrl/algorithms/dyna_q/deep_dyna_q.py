@@ -211,7 +211,9 @@ class DDynaQAgent:
                 self.update_target_networks(use_polyak=self.use_polyak)
 
             state = next_state
-        return ep_rewards, cur_step, critic_loss, state
+
+        loss = critic_loss if batch_transitions else None
+        return ep_rewards, cur_step, loss, state
 
     def world_model_learning(self) -> None:
         """
