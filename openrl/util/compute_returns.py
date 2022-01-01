@@ -33,6 +33,26 @@ def compute_gae_returns(next_value: np.ndarray,
     return returns
 
 
+def compute_bootstrapped_returns(rewards: List, values: List, gamma: float = 0.95) -> List:
+    """
+    Compute bootstrapped rewards-to-go. It's assumed the last state is the terminal state,
+    so V(s_T) = 0.
+
+    q(s_t, a_t) = r(s_t, a_t) + V(s_t+1) * (1 - done)
+
+     :param rewards:
+     :param values:
+     :param gamma:
+     :return:
+     """
+    returns = []
+    for step in range(len(rewards) - 1):
+        q_t = rewards[step] + gamma * values[step + 1]
+        returns.append(q_t)
+    returns.append(rewards[-1])  # terminal state -> V(s_T) = 0
+    return returns
+
+
 def compute_discounted_returns(next_value: Union[float, np.ndarray], rewards: List, masks: List,
                                gamma: float = 0.95) -> List:
     """
