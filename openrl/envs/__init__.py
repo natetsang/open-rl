@@ -4,7 +4,12 @@ from gym.envs.registration import register
 def register_envs():
     register(
         id='gridworld-v0',
-        entry_point='openrl.envs.gridworld:GridWorld',
+        entry_point='openrl.envs.gridworld1_clean:GridWorld',
+        max_episode_steps=500,
+    )
+    register(
+        id='gridworld-v1',
+        entry_point='openrl.envs.gridworld2_clean:GridWorld',
         max_episode_steps=500,
     )
     register(

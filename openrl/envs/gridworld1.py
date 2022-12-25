@@ -1,14 +1,16 @@
 import gym
-import random
-from gym import spaces, utils
 import numpy as np
+from gym import spaces, utils
 
 
 class GridWorld(gym.Env):
     def __init__(self, noise: float = 0.2, living_reward: float = -0.1):
-        self.actions = ["N", "S", "E", "W"]
-        self.action_space = spaces.Discrete(len(self.actions))
-        self.observation_space = spaces.Discrete(1)
+        self.num_rows = 3
+        self.num_cols = 4
+        self.actions_map = {0: "N", 1: "S", 2: "W", 3: "E"}
+        self.action_space = spaces.Discrete(len(self.actions_map))
+
+        self.observation_space = spaces.Discrete(1)  # the states are enumerated
         self.noise = noise
 
         # Rewards
@@ -19,7 +21,7 @@ class GridWorld(gym.Env):
         self.start_pos = (2, 0)
         self.goal_pos = (0, 3)
         self.terminal_pos = (1, 3)
-        self.obstacle = (1, 1)
+        self.obstacle_pos = (1, 1)
 
         self.index_to_coordinate_map = {
             # row 1
@@ -39,60 +41,70 @@ class GridWorld(gym.Env):
             11: (2, 3),
         }
 
-        self.coordinate_to_index_map = {v: k for (k, v) in self.index_to_coordinate_map.items()}
+        self.coordinate_to_index_map = {
+            v: k for (k, v) in self.index_to_coordinate_map.items()
+        }
         self.state = self.coordinate_to_index_map[self.start_pos]
 
         # Rendering
-        self.rendering_grid = np.asarray([
-            "OOOG",
-            "OWOT",
-            "OOOO",
-        ], dtype='c')
+        self.rendering_grid = np.asarray(
+            [
+                "OOOG",
+                "OWOT",
+                "OOOO",
+            ],
+            dtype="c",
+        )
 
-    def reset(self) -> int:
+    def reset(self, seed: int = None) -> int:
+        super().reset(seed=seed)
         self.state = self.coordinate_to_index_map[self.start_pos]
         return self.state
 
-    def step(self, action) -> tuple[int, float, bool, dict]:
+    def step(self, action: int) -> tuple[int, float, bool, dict]:
+        action_desc = self.actions_map[action]
         state_pos = self.index_to_coordinate_map[self.state]
-        if action == 0:  # north
-            rand = random.uniform(0, 1)
-            if rand < self.noise / 2:
-                # 10% of time the agent goes West
+        if action_desc == "N":
+            rand = self.np_random.random()
+            if rand < (self.noise / 2):
+                # randomly goes West
                 next_state_pos = (state_pos[0], max(0, state_pos[1] - 1))
             elif rand < self.noise:
-                # 10% of time the agent goes East
+                # randomly goes East
                 next_state_pos = (state_pos[0], min(3, state_pos[1] + 1))
             else:
-                # 80% of time the agent goes North
+                # agent goes North as expected
                 next_state_pos = (max(0, state_pos[0] - 1), state_pos[1])
-        elif action == 1: # south
+        elif action_desc == "S":
             next_state_pos = (min(2, state_pos[0] + 1), state_pos[1])
-        elif action == 2: # west
+        elif action_desc == "W":
             next_state_pos = (state_pos[0], max(0, state_pos[1] - 1))
-        elif action == 3: # east
+        elif action_desc == "E":
             next_state_pos = (state_pos[0], min(3, state_pos[1] + 1))
-        else:
-            raise ValueError(f"Invalid Action: {action}")
-        
+
         # Check if hit obstacle
-        if next_state_pos == self.obstacle:
+        if next_state_pos == self.obstacle_pos:
             print("Ran into an obstacle!")
-            return self.state, self.living_reward, False, {}, 
+            return self.state, self.living_reward, False, {}
+
+        # Update agent state
         self.state = self.coordinate_to_index_map[next_state_pos]
+
         # Check if goal reached
         if next_state_pos == self.goal_pos:
             print("Goal reached!")
             return self.state, self.goal_reward, True, {}
+
         # Check if terminal pos reached
         if next_state_pos == self.terminal_pos:
             print("Uh oh, terminal reached!")
             return self.state, self.terminal_reward, True, {}
-        return self.state, self.living_reward, False, {}, 
+
+        return self.state, self.living_reward, False, {}
 
     def render(self) -> None:
         desc = self.rendering_grid.tolist()
-        desc = [[c.decode('utf-8') for c in line] for line in desc]
+        desc = [[c.decode("utf-8") for c in line] for line in desc]
         row, col = self.index_to_coordinate_map[self.state]
 
         desc[row][col] = "X"
@@ -101,17 +113,24 @@ class GridWorld(gym.Env):
         print("\n".join("".join(row) for row in desc) + "\n")
 
 
-ACTION = {0: "N", 1: "S", 2: "W", 3: "E"}
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     env = GridWorld()
     done = False
-    state = env.reset()
+    state = env.reset(1)
+    step = 0
+    total_rewards = 0
     while not done:
-        action = random.randint(0, 3)
+        step += 1
+        action = env.np_random.integers(0, 4)
         env.render()
         next_state, reward, done, info = env.step(action)
-        print(f"{env.index_to_coordinate_map[state]} + {ACTION[action]} --> {env.index_to_coordinate_map[next_state]} || reward={reward} || done={done}")
+        print(
+            f"{env.index_to_coordinate_map[state]} + {env.actions_map[action]} --> "
+            + f"{env.index_to_coordinate_map[next_state]} || reward={reward} || done={done}"
+        )
         env.render()
         print("----------------------------------------------")
         state = next_state
+        total_rewards += reward
+
+    print(f"Num steps: {step} -- rewards: {total_rewards}")
