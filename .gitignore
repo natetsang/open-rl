@@ -131,6 +131,9 @@ dmypy.json
 # Pycharm settings
 .idea
 
+# vscode settings
+.vscode
+
 # Other specific folders and files
 **/model_chkpt**
 **/results.png
