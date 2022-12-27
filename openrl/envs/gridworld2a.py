@@ -8,10 +8,10 @@ class GridWorld(gym.Env):
         self.num_rows = 3
         self.num_cols = 4
         self.action_to_direction_map = {
-            0: [-1, 0],  # N
-            1: [1, 0],  # S
-            2: [0, -1],  # W
-            3: [0, 1],  # E
+            0: (-1, 0),  # N
+            1: (1, 0),  # S
+            2: (0, -1),  # W
+            3: (0, 1),  # E
         }
         self.action_space = spaces.Discrete(len(self.action_to_direction_map))
 
@@ -28,10 +28,10 @@ class GridWorld(gym.Env):
         self.goal_reward = 1
         self.terminal_reward = -1
 
-        self.start_pos = [2, 0]
-        self.goal_pos = [0, 3]
-        self.terminal_pos = [1, 3]
-        self.obstacle_pos = [1, 1]
+        self.start_pos = (2, 0)
+        self.goal_pos = (0, 3)
+        self.terminal_pos = (1, 3)
+        self.obstacle_pos = (1, 1)
 
         self.agent_pos = self.start_pos
 
@@ -45,28 +45,30 @@ class GridWorld(gym.Env):
             dtype="c",
         )
 
-    def _get_observation(self):
+    def _get_observation(self) -> dict[str, tuple[int, int]]:
         return {"agent": self.agent_pos, "goal": self.goal_pos}
 
-    def reset(self, seed: int = None) -> int:
+    def reset(self, seed: int = None) -> dict[str, tuple[int, int]]:
         super().reset(seed=seed)
         self.agent_pos = self.start_pos
         return self._get_observation()
 
-    def step(self, action: int) -> tuple[int, float, bool, dict]:
+    def step(self, action: int) -> tuple[dict[str, tuple[int, int]]:, float, bool, dict]:
         direction = self.action_to_direction_map[action]
         if action == 0:  # North
             rand = self.np_random.random()
             if rand < (self.noise / 2):
-                direction = [0, -1]  # randomly goes West
+                direction = (0, -1)  # randomly goes West
             elif rand < self.noise:
-                direction = [0, 1]  # randomly goes East
+                direction = (0, 1)  # randomly goes East
 
+        # update position and clip ensure it remains within grid bounds
         next_agent_pos = np.clip(
             np.array(self.agent_pos) + np.array(direction),
-            a_min=[0, 0],
-            a_max=[self.num_rows - 1, self.num_cols - 1],
-        ).tolist()
+            a_min=(0, 0),
+            a_max=(self.num_rows - 1, self.num_cols - 1),
+        )
+        next_agent_pos = tuple(next_agent_pos)
 
         # Check if hit obstacle
         if next_agent_pos == self.obstacle_pos:

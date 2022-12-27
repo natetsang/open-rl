@@ -7,8 +7,13 @@ class GridWorld(gym.Env):
     def __init__(self, noise: float = 0.2, living_reward: float = -0.1):
         self.num_rows = 3
         self.num_cols = 4
-        self.actions_map = {0: "N", 1: "S", 2: "W", 3: "E"}
-        self.action_space = spaces.Discrete(len(self.actions_map))
+        self.action_to_direction_map = {
+            0: (-1, 0),  # N
+            1: (1, 0),  # S
+            2: (0, -1),  # W
+            3: (0, 1),  # E
+        }
+        self.action_space = spaces.Discrete(len(self.action_to_direction_map))
 
         self.observation_space = spaces.Discrete(1)  # the states are enumerated
         self.noise = noise
@@ -62,41 +67,39 @@ class GridWorld(gym.Env):
         return self.state
 
     def step(self, action: int) -> tuple[int, float, bool, dict]:
-        action_desc = self.actions_map[action]
-        state_pos = self.index_to_coordinate_map[self.state]
-        if action_desc == "N":
+        agent_pos = self.index_to_coordinate_map[self.state]
+
+        direction = self.action_to_direction_map[action]
+        if action == 0:  # North
             rand = self.np_random.random()
             if rand < (self.noise / 2):
-                # randomly goes West
-                next_state_pos = (state_pos[0], max(0, state_pos[1] - 1))
+                direction = [0, -1]  # randomly goes West
             elif rand < self.noise:
-                # randomly goes East
-                next_state_pos = (state_pos[0], min(3, state_pos[1] + 1))
-            else:
-                # agent goes North as expected
-                next_state_pos = (max(0, state_pos[0] - 1), state_pos[1])
-        elif action_desc == "S":
-            next_state_pos = (min(2, state_pos[0] + 1), state_pos[1])
-        elif action_desc == "W":
-            next_state_pos = (state_pos[0], max(0, state_pos[1] - 1))
-        elif action_desc == "E":
-            next_state_pos = (state_pos[0], min(3, state_pos[1] + 1))
+                direction = [0, 1]  # randomly goes East
+
+        # update position and clip ensure it remains within grid bounds
+        next_agent_pos = np.clip(
+            np.array(agent_pos) + np.array(direction),
+            a_min=[0, 0],
+            a_max=[self.num_rows - 1, self.num_cols - 1],
+        )
+        next_agent_pos = tuple(next_agent_pos)
 
         # Check if hit obstacle
-        if next_state_pos == self.obstacle_pos:
+        if next_agent_pos == self.obstacle_pos:
             print("Ran into an obstacle!")
             return self.state, self.living_reward, False, {}
 
         # Update agent state
-        self.state = self.coordinate_to_index_map[next_state_pos]
+        self.state = self.coordinate_to_index_map[next_agent_pos]
 
         # Check if goal reached
-        if next_state_pos == self.goal_pos:
+        if next_agent_pos == self.goal_pos:
             print("Goal reached!")
             return self.state, self.goal_reward, True, {}
 
         # Check if terminal pos reached
-        if next_state_pos == self.terminal_pos:
+        if next_agent_pos == self.terminal_pos:
             print("Uh oh, terminal reached!")
             return self.state, self.terminal_reward, True, {}
 
@@ -125,8 +128,7 @@ if __name__ == "__main__":
         env.render()
         next_state, reward, done, info = env.step(action)
         print(
-            f"{env.index_to_coordinate_map[state]} + {env.actions_map[action]} --> "
-            + f"{env.index_to_coordinate_map[next_state]} || reward={reward} || done={done}"
+            f"{state} + {env.action_to_direction_map[action]} --> {next_state} || reward={reward} || done={done}"
         )
         env.render()
         print("----------------------------------------------")

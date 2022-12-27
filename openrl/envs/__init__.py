@@ -3,14 +3,14 @@ from gym.envs.registration import register
 
 def register_envs():
     register(
-        id='gridworld-v0',
-        entry_point='openrl.envs.gridworld1_clean:GridWorld',
-        max_episode_steps=500,
+        id='gridworld-v1',
+        entry_point='openrl.envs.gridworld1a:GridWorld',
+        max_episode_steps=200,
     )
     register(
-        id='gridworld-v1',
-        entry_point='openrl.envs.gridworld2_clean:GridWorld',
-        max_episode_steps=500,
+        id='gridworld-v2',
+        entry_point='openrl.envs.gridworld2a:GridWorld',
+        max_episode_steps=200,
     )
     register(
         id='obstacles-cs285-v0',
