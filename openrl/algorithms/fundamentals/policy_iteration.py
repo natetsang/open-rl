@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def policy_evaluation(policy, P, gamma: float, theta: float):
+def policy_evaluation(policy: dict[int, int], P: dict, gamma: float, theta: float) -> np.ndarray:
     """
     Policy evaluation is an algorithm for estimating the state-value function V(s) given a policy pi(s).
     It's referred to as the prediction problem, because wer're predicting a value of a state from the policy.
@@ -13,6 +13,7 @@ def policy_evaluation(policy, P, gamma: float, theta: float):
     # Initialize V(s), for all s in S, arbitrarily except that V(terminal) = 0
     V = np.zeros(num_states)
 
+    # Run multiple sweeps through state space until convergence
     while delta <= theta:
         V_new = np.zeros(num_states)  # initialize current iteration estimates to zero
 
@@ -24,14 +25,14 @@ def policy_evaluation(policy, P, gamma: float, theta: float):
                 V_new[s] += prob * (reward + gamma * V[next_state] * (not done))
 
         # calculate delta
-        delta = np.abs(V - V_new)
+        delta = np.max(np.abs(V - V_new))
 
         V = V_new.copy()
 
     return V_new
 
 
-def policy_improvement(V, P, gamma=1.0):
+def policy_improvement(V: np.ndarray, P: dict, gamma=1.0) -> dict[int, int]:
     num_states = len(P)
     num_actions = len(P[0])
 
@@ -39,6 +40,7 @@ def policy_improvement(V, P, gamma=1.0):
     greedy_policy = {}
     Q = np.zeros((num_states, num_actions))
 
+    # loop through each state s in S
     for s in range(num_states):
         # Get all q-values
         for a in range(num_actions):
@@ -50,7 +52,7 @@ def policy_improvement(V, P, gamma=1.0):
     return greedy_policy
 
 
-def policy_iteration(P, gamma, theta):
+def policy_iteration(P: dict, gamma: float, theta: float) -> tuple[np.ndarray, dict[int, int]]:
     # Randomly intialize pi
     policy = {s: np.random.choice(a) for s, a in enumerate(P)}
     prev_policy = policy.copy()
