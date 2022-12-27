@@ -1,7 +1,10 @@
 import numpy as np
 
 
-def value_iteration(P: dict, gamma: float, theta: float) -> tuple[np.ndarray, dict[int, int]]:
+def value_iteration(
+    P: dict, gamma: float, theta: float
+) -> tuple[np.ndarray, dict[int, int]]:
+    """Inspired by @source: GDRL chapter 3"""
     num_states = len(P)
     num_actions = len(P[0])
     policy = {}

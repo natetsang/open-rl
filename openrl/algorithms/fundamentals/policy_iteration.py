@@ -1,12 +1,10 @@
 import numpy as np
 
 
-def policy_evaluation(policy: dict[int, int], P: dict, gamma: float, theta: float) -> np.ndarray:
-    """
-    Policy evaluation is an algorithm for estimating the state-value function V(s) given a policy pi(s).
-    It's referred to as the prediction problem, because wer're predicting a value of a state from the policy.
-    @source: GDRL chapter 3
-    """
+def policy_evaluation(
+    policy: dict[int, int], P: dict, gamma: float, theta: float
+) -> np.ndarray:
+    """Inspired by @source: GDRL chapter 3"""
     num_states = len(P)
     delta = 0
 
@@ -52,7 +50,9 @@ def policy_improvement(V: np.ndarray, P: dict, gamma=1.0) -> dict[int, int]:
     return greedy_policy
 
 
-def policy_iteration(P: dict, gamma: float, theta: float) -> tuple[np.ndarray, dict[int, int]]:
+def policy_iteration(
+    P: dict, gamma: float, theta: float
+) -> tuple[np.ndarray, dict[int, int]]:
     # Randomly intialize pi
     policy = {s: np.random.choice(a) for s, a in enumerate(P)}
     prev_policy = policy.copy()
