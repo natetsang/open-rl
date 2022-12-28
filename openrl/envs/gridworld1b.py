@@ -10,7 +10,9 @@ class GridWorld(gym.Env):
         self.actions_map = {0: "N", 1: "S", 2: "W", 3: "E"}
         self.action_space = spaces.Discrete(len(self.actions_map))
 
-        self.observation_space = spaces.Discrete(1)  # the states are enumerated
+        self.observation_space = spaces.Discrete(
+            self.num_rows * self.num_cols
+        )  # the states are enumerated
         self.noise = noise
 
         # Rewards
