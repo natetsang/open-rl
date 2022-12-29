@@ -115,12 +115,12 @@ def q_learning(
 
 def get_action_probs(state, epsilon, Q, num_actions):
     probs = [
-        epsilon / (num_actions - 1)
-    ] * num_actions  # TODO(ntsang):this might be (epsilon/num_actions)
+        epsilon / (num_actions)
+    ] * num_actions
     greedy_action_idx = np.argmax(Q[state])
-    probs[greedy_action_idx] = (
+    probs[greedy_action_idx] += (
         1.0 - epsilon
-    )  # TODO(ntsang): if above, this will be +=, not +
+    )
     return np.array(probs)
 
 
