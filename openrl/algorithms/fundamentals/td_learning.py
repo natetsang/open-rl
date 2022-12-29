@@ -213,3 +213,60 @@ def double_q_learning(
             state = next_state
 
     return Q, policy
+
+
+def double_sarsa(
+    policy: dict[int, int],
+    env: gym.Env,
+    gamma: float,
+    alpha: float,
+    epsilon: float,
+    num_episodes: int,
+) -> np.ndarray:
+    num_states = env.observation_space.n
+    num_actions = env.action_space.n
+    Q = np.zeros((num_states, num_actions))
+    Q1 = np.zeros((num_states, num_actions))
+    Q2 = np.zeros((num_states, num_actions))
+    policy = {}
+    for _ in range(num_episodes):
+        state = env.reset()
+        action = (
+            policy[state]
+            if np.random.random() > epsilon
+            else np.random.randint(num_actions)
+        )
+        epsilon = exponential_decay(epsilon, decay_factor=0.99975, min_val=0.001)
+        done = False
+        while not done:
+            next_state, reward, done, _ = env.step(action)
+            next_action = (
+                policy[next_state]
+                if np.random.random() > epsilon
+                else np.random.randint(num_actions)
+            )
+            if np.random.random() < 0.5:
+                target = reward + gamma * Q2[next_state][next_action] * (
+                    not done
+                )
+                Q1[state][action] = Q1[state][action] + alpha * (
+                    target - Q1[state][action]
+                )
+            else:
+                target = reward + gamma * Q1[next_state][next_action] * (
+                    not done
+                )
+                Q2[state][action] = Q2[state][action] + alpha * (
+                    target - Q2[state][action]
+                )
+
+            alpha = exponential_decay(alpha, decay_factor=0.99975, min_val=0.001)
+
+            # extract policy - policy imporvement w.r.t to visited states
+            # this is the only difference between prediction and control
+            # Update Q, which is the average
+            Q[state][action] = np.mean([Q1[state][action], Q2[state][action]])
+            policy[state] = np.argmax(Q[state])
+            state = next_state
+
+    return Q, policy
