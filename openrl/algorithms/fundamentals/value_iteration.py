@@ -1,3 +1,5 @@
+import gym
+import gym_walk
 import numpy as np
 
 
@@ -38,3 +40,12 @@ def value_iteration(
             break
 
     return V, policy
+
+
+if __name__ == "__main__":
+    env = gym.make('SlipperyWalkFive-v0')
+    gamma = 1.0
+    theta = 1e-10
+    P = env.env.P
+    V, policy = value_iteration(P=P, gamma=gamma, theta=theta)
+    print(V)
