@@ -59,7 +59,7 @@ def policy_iteration(
     P: dict, gamma: float, theta: float
 ) -> tuple[np.ndarray, dict[int, int]]:
     # Randomly intialize pi
-    policy = {s: np.random.choice(a) for s, a in enumerate(P)}
+    policy = {s: np.random.choice(list(P[s].keys())) for s in P}
     prev_policy = policy.copy()
 
     while True:
@@ -74,14 +74,17 @@ def policy_iteration(
         if policy == prev_policy:
             break
 
+        prev_policy = policy
+
     return V, policy
 
 
 if __name__ == "__main__":
-    env = gym.make("RandomWalk-v0")
+    env = gym.make('SlipperyWalkFive-v0')
     gamma = 1.0
     theta = 1e-10
     P = env.env.P
     LEFT, RIGHT = range(2)
     pi = {0: LEFT, 1: LEFT, 2: LEFT, 3: LEFT, 4: LEFT, 5: LEFT, 6: LEFT}
-    policy_evaluation(policy=pi, P=P, gamma=gamma, theta=theta)
+    V, policy = policy_iteration(P=P, gamma=gamma, theta=theta)
+    print(V)
