@@ -1,3 +1,5 @@
+import gym
+import gym_walk
 import numpy as np
 
 
@@ -12,7 +14,7 @@ def policy_evaluation(
     V = np.zeros(num_states)
 
     # Run multiple sweeps through state space until convergence
-    while delta <= theta:
+    while True:
         V_new = np.zeros(num_states)  # initialize current iteration estimates to zero
 
         # loop through each state s in S
@@ -26,6 +28,9 @@ def policy_evaluation(
         delta = np.max(np.abs(V - V_new))
 
         V = V_new.copy()
+
+        if delta < theta:
+            break
 
     return V_new
 
@@ -70,3 +75,13 @@ def policy_iteration(
             break
 
     return V, policy
+
+
+if __name__ == "__main__":
+    env = gym.make("RandomWalk-v0")
+    gamma = 1.0
+    theta = 1e-10
+    P = env.env.P
+    LEFT, RIGHT = range(2)
+    pi = {0: LEFT, 1: LEFT, 2: LEFT, 3: LEFT, 4: LEFT, 5: LEFT, 6: LEFT}
+    policy_evaluation(policy=pi, P=P, gamma=gamma, theta=theta)

@@ -14,7 +14,7 @@ def value_iteration(
     V = np.zeros(num_states)
 
     # Run multiple sweeps through state space until convergence
-    while delta < theta:
+    while True:
         Q = np.zeros((num_states, num_actions))  # Initialize q-values for every sweep
 
         # loop through each state s in S
@@ -33,5 +33,8 @@ def value_iteration(
 
         # update V
         V = V_new.copy()
+
+        if delta < theta:
+            break
 
     return V, policy
