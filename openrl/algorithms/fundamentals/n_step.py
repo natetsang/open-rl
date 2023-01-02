@@ -131,7 +131,8 @@ def get_action_probs(state, epsilon, Q, num_actions):
     return np.array(probs)
 
 
-# TODO(ntsang): This is incorrect -- needs to be n-step tree backup algorithm
+# TODO(ntsang): Maybe add an implementation non-tree backup n-step Q-learning?
+
 def nstep_q_learning_tree_backup(
     env: gym.Env,
     gamma: float,
