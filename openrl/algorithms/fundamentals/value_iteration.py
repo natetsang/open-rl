@@ -48,19 +48,24 @@ if __name__ == "__main__":
 
     V, policy = value_iteration(P=P, gamma=1.0, theta=1e-10)
 
-    V_rounded = [round(x, 2) for x in V]
-    V_true = [0.0, 0.67, 0.89, 0.96, 0.99, 1.0, 0.0]
-    policy_true = {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0}
+    # Round to make it easier to read
+    V_actual = [round(x, 2) for x in V]
+    # first and last states are terminal, so prune these
+    V_actual = V_actual[1:5]
+    policy_actual = {k: v for k, v in policy.items() if k not in [0, 6]}
 
-    if V_rounded == V_true:
+    V_expected = [0.67, 0.89, 0.96, 0.99, 1.0]
+    policy_expected = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1}
+
+    if V_actual == V_expected:
         print("Converged to the correct value function!")
     else:
         print("Did not converge to the correct value function!")
-        print("Expected: ", V_true)
-        print("Actual: ", V_rounded)
-    if policy == policy_true:
+        print("Expected: ", V_expected)
+        print("Actual:   ", V_actual)
+    if policy_actual == policy_expected:
         print("Converged to the correct policy!")
     else:
         print("Did not converge to the correct policy!")
-        print("Expected: ", policy_true)
-        print("Actual: ", policy)
+        print("Expected: ", policy_expected)
+        print("Actual:   ", policy_actual)

@@ -23,7 +23,7 @@ def generate_episode(
     return trajectory
 
 
-def compute_G(rewards: list[float], gamma: float = 0.95) -> float:
+def computed_discounted_rewards(rewards: list[float], gamma: float = 0.95) -> float:
     """
     Compute the rewards-to-go, which are the cumulative rewards from t=t' to T.
     """
@@ -73,10 +73,10 @@ def mc_prediction(
             N[state] += 1  # Mark state as visited
 
             # Get list of rewards from t
-            rewards = [experience[2] for experience in episode[t:]]
+            rewards = np.array(episode)[:, 2]
 
             # Compute G, the sum of discounted rewards t:T
-            G = compute_G(rewards, gamma)
+            G = computed_discounted_rewards(rewards, gamma)
 
             # stationary approach - based on number of visits to state s
             # V[state] = V[state] + (1 / N[state]) * (G - V[state])
@@ -126,10 +126,10 @@ def mc_control(
             N[state][action] += 1  # Mark state-action as visited
 
             # Get list of rewards from t:T
-            rewards = [experience[2] for experience in episode[t:]]
+            rewards = np.array(episode)[:, 2]
 
             # Compute G, the sum of discounted rewards t:T
-            G = compute_G(rewards, gamma)
+            G = computed_discounted_rewards(rewards, gamma)
 
             # stationary approach - based on number of visits to state-action
             # Q[state][action] = Q[state][action] + (1 / N[state][action]) * (G - Q[state][action])
@@ -151,25 +151,28 @@ def mc_control(
 if __name__ == "__main__":
     env = gym.make("SlipperyWalkFive-v0")
 
-    policy = {s: 1 for s in range(env.observation_space.n)}
-
     Q, policy = mc_control(
         env=env, gamma=1.0, alpha=0.5, epsilon=0.2, num_episodes=3000, first_visit=True
     )
-    V_rounded = [round(x, 2) for x in np.max(Q, axis=1)]
 
-    V_true = [0.0, 0.67, 0.89, 0.96, 0.99, 1.0, 0.0]
-    policy_true = {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0}
+    # Round to make it easier to read
+    V_actual = [round(x, 2) for x in np.max(Q, axis=1)]
+    # first and last states are terminal, so prune these
+    V_actual = V_actual[1:5]
+    policy_actual = {k: v for k, v in policy.items() if k not in [0, 6]}
 
-    if V_rounded == V_true:
+    V_expected = [0.67, 0.89, 0.96, 0.99, 1.0]
+    policy_expected = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1}
+
+    if V_actual == V_expected:
         print("Converged to the correct value function!")
     else:
         print("Did not converge to the correct value function!")
-        print("Expected: ", V_true)
-        print("Actual:   ", V_rounded)
-    if policy == policy_true:
+        print("Expected: ", V_expected)
+        print("Actual:   ", V_actual)
+    if policy_actual == policy_expected:
         print("Converged to the correct policy!")
     else:
         print("Did not converge to the correct policy!")
-        print("Expected: ", policy_true)
-        print("Actual:   ", policy)
+        print("Expected: ", policy_expected)
+        print("Actual:   ", policy_actual)
