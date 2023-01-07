@@ -145,7 +145,6 @@ def mc_control(
         # NOTE: alpha must decay to guarantee convergence
         alpha = exponential_decay(alpha, decay_factor=0.99975, min_val=0.001)
         epsilon = exponential_decay(epsilon, decay_factor=0.99795, min_val=0.001)
-    print("N: ", N)
     return Q, policy
 
 
