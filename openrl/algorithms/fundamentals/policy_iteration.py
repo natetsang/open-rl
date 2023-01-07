@@ -1,12 +1,15 @@
 import gym
-import gym_walk
+import gym_walk  # noqa
 import numpy as np
 
 
 def policy_evaluation(
-    policy: dict[int, int], P: dict, gamma: float, theta: float
+    policy: dict[int, int],
+    P: dict[dict[tuple[float, int, float, bool]]],
+    gamma: float = 1.0,
+    theta: float = 1e-10,
 ) -> np.ndarray:
-    """Inspired by @source: GDRL chapter 3"""
+    """Adapted from @source:GDRL chapter 3"""
     num_states = len(P)
     delta = 0
 
@@ -24,18 +27,22 @@ def policy_evaluation(
             for prob, next_state, reward, done in P[s][a]:
                 V_new[s] += prob * (reward + gamma * V[next_state] * (not done))
 
-        # calculate delta
+        # calculate delta between iterations
         delta = np.max(np.abs(V - V_new))
 
         V = V_new.copy()
 
+        # If our estimated V changed less than our threshold, we're done
         if delta < theta:
             break
 
+    # Return our estimated value-function
     return V_new
 
 
-def policy_improvement(V: np.ndarray, P: dict, gamma=1.0) -> dict[int, int]:
+def policy_improvement(
+    V: np.ndarray, P: dict[dict[tuple[float, int, float, bool]]], gamma: float = 1.0
+) -> dict[int, int]:
     num_states = len(P)
     num_actions = len(P[0])
 
@@ -45,7 +52,7 @@ def policy_improvement(V: np.ndarray, P: dict, gamma=1.0) -> dict[int, int]:
 
     # loop through each state s in S
     for s in range(num_states):
-        # Get all q-values
+        # Get all q-values (i.e. action-values) by looping through all actions a
         for a in range(num_actions):
             for prob, next_state, reward, done in P[s][a]:
                 Q[s][a] += prob * (reward + gamma * V[next_state] * (not done))
@@ -56,12 +63,15 @@ def policy_improvement(V: np.ndarray, P: dict, gamma=1.0) -> dict[int, int]:
 
 
 def policy_iteration(
-    P: dict, gamma: float, theta: float
+    P: dict[dict[tuple[float, int, float, bool]]],
+    gamma: float = 1.0,
+    theta: float = 1e-10,
 ) -> tuple[np.ndarray, dict[int, int]]:
     # Randomly intialize pi
     policy = {s: np.random.choice(list(P[s].keys())) for s in P}
     prev_policy = policy.copy()
 
+    # Run until convergence
     while True:
         # Run policy evaluation to get updated V_pi
         V = policy_evaluation(policy, P, gamma, theta)
@@ -80,11 +90,24 @@ def policy_iteration(
 
 
 if __name__ == "__main__":
-    env = gym.make('SlipperyWalkFive-v0')
-    gamma = 1.0
-    theta = 1e-10
-    P = env.env.P
-    LEFT, RIGHT = range(2)
-    pi = {0: LEFT, 1: LEFT, 2: LEFT, 3: LEFT, 4: LEFT, 5: LEFT, 6: LEFT}
-    V, policy = policy_iteration(P=P, gamma=gamma, theta=theta)
-    print(V)
+    env = gym.make("SlipperyWalkFive-v0")
+    P = env.env.P  # Get probability matrix
+    
+    V, policy = policy_iteration(P=P, gamma=1.0, theta=1e-10)
+    
+    V_rounded = [round(x, 2) for x in V]
+    V_true = [0.0, 0.67, 0.89, 0.96, 0.99, 1.0, 0.0]
+    policy_true = {0: 0, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 0}
+
+    if V_rounded == V_true:
+        print("Converged to the correct value function!")
+    else:
+        print("Did not converge to the correct value function!")
+        print("Expected: ", V_true)
+        print("Actual: ", V_rounded)
+    if policy == policy_true:
+        print("Converged to the correct policy!")
+    else:
+        print("Did not converge to the correct policy!")
+        print("Expected: ", policy_true)
+        print("Actual: ", policy)
