@@ -324,7 +324,7 @@ if __name__ == "__main__":
     # Round to make it easier to read
     V_actual = [round(x, 2) for x in np.max(Q, axis=1)]
     # first and last states are terminal, so prune these
-    V_actual = V_actual[1:5]
+    V_actual = V_actual[1:6]
     policy_actual = {k: v for k, v in policy.items() if k not in [0, 6]}
 
     V_expected = [0.67, 0.89, 0.96, 0.99, 1.0]

@@ -235,13 +235,13 @@ if __name__ == "__main__":
     env = gym.make("SlipperyWalkFive-v0")
 
     Q, policy = nstep_q_learning_tree_backup(
-        env=env, gamma=1.0, alpha=0.5, epsilon=0.2, n_steps=1, num_episodes=3000
+        env=env, gamma=1.0, alpha=0.5, epsilon=0.2, n_steps=3, num_episodes=3000
     )
 
     # Round to make it easier to read
     V_actual = [round(x, 2) for x in np.max(Q, axis=1)]
     # first and last states are terminal, so prune these
-    V_actual = V_actual[1:5]
+    V_actual = V_actual[1:6]
     policy_actual = {k: v for k, v in policy.items() if k not in [0, 6]}
 
     V_expected = [0.67, 0.89, 0.96, 0.99, 1.0]
