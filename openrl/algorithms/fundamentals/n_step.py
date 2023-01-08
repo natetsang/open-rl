@@ -151,8 +151,9 @@ def get_action_probs(
 
 
 # TODO(ntsang): Maybe add an implementation non-tree backup n-step Q-learning?
+# TODO(ntsang): Maybe try importance sampling algorithm (section 7.5)
 
-
+# TODO(ntsang): This algorithm doesn't work!! Still a WIP.
 def nstep_q_learning_tree_backup(
     env: gym.Env,
     gamma: float,
@@ -198,28 +199,36 @@ def nstep_q_learning_tree_backup(
             state_to_update = trajectory[0][0]  # (s, a, r, d) tuple
             action_to_update = trajectory[0][1]
 
-            # TODO(ntsang): something's probably off here with edge cases where len(traj) < n
-            G = 0
+            if len(trajectory) == 1 and done:
+                G = trajectory[0][2]  # R_T
+            else:
+                reward = trajectory[0][2]
+                next_state = trajectory[1][0]
+                action_probs_next_state = get_action_probs(
+                    next_state, epsilon, Q, num_actions
+                )
+                G = reward + gamma * np.sum(
+                    action_probs_next_state * Q[next_state]
+                )
             for k in range(len(trajectory) - 1, -1, -1):
                 k_state, k_action, k_reward, k_next_state, k_done = trajectory[k]
-                k_action_probs = get_action_probs(k_state, epsilon, Q, num_actions)
-                k_next_action_greedy = np.argmax(Q[k_next_state])
-                k_next_action_probs_not_greedy = np.delete(
-                    k_action_probs, k_next_action_greedy
-                )
-                Q_not_greedy = np.delete(Q[k_next_state], k_next_action_greedy)
 
-                first_term = k_reward + gamma * np.sum(
-                    k_next_action_probs_not_greedy * Q_not_greedy
-                )
-                second_term = gamma * k_action_probs[k_next_action_greedy] * G
+                # Get action probs for actions we did and didn't take at time k
+                k_action_probs = get_action_probs(k_state, epsilon, Q, num_actions)
+                k_action_prob = k_action_probs[k_action]
+                k_not_action_probs = np.delete(k_action_probs, k_action)
+
+                # Get Q-values for actions we didn't take
+                Q_not_taken = np.delete(Q[k_state], k_action)
+
+                first_term = k_reward + gamma * np.sum(k_not_action_probs * Q_not_taken)
+                second_term = gamma * k_action_prob * G
                 G = first_term + second_term
 
             # This remains unchanged from before
-            target = G
             Q[state_to_update][action_to_update] = Q[state_to_update][
                 action_to_update
-            ] + alpha * (target - Q[state_to_update][action_to_update])
+            ] + alpha * (G - Q[state_to_update][action_to_update])
 
             # extract policy - policy imporvement w.r.t to visited states
             # this is the only difference between prediction and control
