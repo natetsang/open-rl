@@ -141,6 +141,78 @@ def nstep_sarsa(
     return Q, policy
 
 
+def nstep_qlearning(
+    env: gym.Env,
+    gamma: float,
+    alpha: float,
+    epsilon: float,
+    n_steps: int,
+    num_episodes: int,
+) -> np.ndarray:
+    """
+    This algorithm is not in Sutton and Barto.
+    I'm not even sure if this algorithm is theoretically correct because it doesn't address the fact that
+    we're acting with the behavior policy but updating the target policy.
+    Nevertheless in deep RL, we tend to do n-step q-learning like this, not like the tree-backup method
+    and so for that reason, I'm including it
+    """
+    num_states = env.observation_space.n
+    num_actions = env.action_space.n
+
+    # Arbitrarily initialize V and pi
+    Q = np.zeros((num_states, num_actions))
+    policy = {s: np.random.choice(num_actions) for s in range(num_states)}
+
+    for _ in range(num_episodes):
+        state = env.reset()
+        done = False
+        trajectory = []
+        while True:
+            trajectory = trajectory[1:]  # deque first element
+
+            # Gather and append n-steps (or until done)
+            while len(trajectory) < n_steps and not done:
+                action = (
+                    policy[state]
+                    if np.random.random() > epsilon
+                    else np.random.randint(num_actions)
+                )
+                next_state, reward, done, _ = env.step(action)
+
+                trajectory.append((state, action, reward, next_state, done))
+                state = next_state
+
+            if len(trajectory) == 0:
+                break
+
+            # get the first state-action in the n-step traj, which is what we want to update
+            state_to_update = trajectory[0][0]  # (s, a, r, d) tuple
+            action_to_update = trajectory[0][1]
+
+            # get all rewards, r(t=t'), r(t=t'+1), ... r(t=t'+n-1)
+            n_rewards = np.array(trajectory)[:, 2]
+            n_rewards = computed_discounted_rewards(n_rewards, gamma)
+            # The only difference between n-step sarsa and n-step q-learning is this next line
+            target = n_rewards + gamma ** (len(trajectory) - 1) * np.max(
+                Q[next_state]
+            ) * (not done)
+
+            # Update estimated Q for state_to_update, NOT state
+            Q[state_to_update][action_to_update] = Q[state_to_update][
+                action_to_update
+            ] + alpha * (target - Q[state_to_update][action_to_update])
+
+            # extract policy - policy imporvement w.r.t to visited states
+            # this is the only difference between prediction and control
+            policy[state_to_update] = np.argmax(Q[state_to_update])
+
+        # Decay parameters
+        alpha = exponential_decay(alpha, decay_factor=0.99975, min_val=0.001)
+        epsilon = exponential_decay(epsilon, decay_factor=0.99975, min_val=0.001)
+        # print(f"alpha={alpha} --- epsilon={epsilon}")
+    return Q, policy
+
+
 def get_action_probs(
     state: int, epsilon: float, Q: np.ndarray, num_actions: int
 ) -> np.ndarray:
@@ -150,7 +222,6 @@ def get_action_probs(
     return np.array(probs)
 
 
-# TODO(ntsang): Maybe add an implementation non-tree backup n-step Q-learning?
 # TODO(ntsang): Maybe try importance sampling algorithm (section 7.5)
 
 def nstep_q_learning_tree_backup(
