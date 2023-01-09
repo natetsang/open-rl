@@ -151,7 +151,7 @@ def nstep_qlearning(
 ) -> np.ndarray:
     """
     This algorithm is not in Sutton and Barto.
-    I'm not even sure if this algorithm is theoretically correct because it doesn't address the fact that
+    In theory, this algorithm learns action-values for the behavior policy, e-greedy. See S&B Section 5.5 (p. 103)
     we're acting with the behavior policy but updating the target policy.
     Nevertheless in deep RL, we tend to do n-step q-learning like this, not like the tree-backup method
     and so for that reason, I'm including it
