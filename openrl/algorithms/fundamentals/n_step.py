@@ -153,7 +153,6 @@ def get_action_probs(
 # TODO(ntsang): Maybe add an implementation non-tree backup n-step Q-learning?
 # TODO(ntsang): Maybe try importance sampling algorithm (section 7.5)
 
-# TODO(ntsang): This algorithm doesn't work!! Still a WIP.
 def nstep_q_learning_tree_backup(
     env: gym.Env,
     gamma: float,
@@ -189,41 +188,56 @@ def nstep_q_learning_tree_backup(
                     if np.random.random() > epsilon
                     else np.random.randint(num_actions)
                 )
-                trajectory.append((state, action, reward, next_state, done))
+                trajectory.append(
+                    (state, action, reward, next_state, next_action, done)
+                )
                 state, action = next_state, next_action
 
             if len(trajectory) == 0:
                 break
 
             # get the first state-action in the n-step traj, which is what we want to update
-            state_to_update = trajectory[0][0]  # (s, a, r, d) tuple
+            state_to_update = trajectory[0][0]  # (s, a, r, s', a', d) tuple
             action_to_update = trajectory[0][1]
 
-            if len(trajectory) == 1 and done:
-                G = trajectory[0][2]  # R_T
-            else:
-                reward = trajectory[0][2]
-                next_state = trajectory[1][0]
-                action_probs_next_state = get_action_probs(
-                    next_state, epsilon, Q, num_actions
-                )
-                G = reward + gamma * np.sum(
-                    action_probs_next_state * Q[next_state]
-                )
             for k in range(len(trajectory) - 1, -1, -1):
-                k_state, k_action, k_reward, k_next_state, k_done = trajectory[k]
+                (
+                    k_state,
+                    k_action,
+                    k_reward,
+                    k_next_state,
+                    k_next_action,
+                    k_done,
+                ) = trajectory[k]
 
-                # Get action probs for actions we did and didn't take at time k
-                k_action_probs = get_action_probs(k_state, epsilon, Q, num_actions)
-                k_action_prob = k_action_probs[k_action]
-                k_not_action_probs = np.delete(k_action_probs, k_action)
+                # Get action probs for next_state s'
+                next_action_probs = get_action_probs(
+                    k_next_state, epsilon, Q, num_actions
+                )
+                # Get prob for next_action a' actually taken
+                next_action_prob_taken = next_action_probs[k_next_action]
+                # Get probs for all next_actions a' that weren't taken
+                next_action_probs_not_taken = np.delete(
+                    next_action_probs, k_next_action
+                )
+                # Get Q(next_state) for next_actions that weren't actually taken
+                Q_next_state_for_actions_not_taken = np.delete(
+                    Q[k_next_state], k_next_action
+                )
 
-                # Get Q-values for actions we didn't take
-                Q_not_taken = np.delete(Q[k_state], k_action)
-
-                first_term = k_reward + gamma * np.sum(k_not_action_probs * Q_not_taken)
-                second_term = gamma * k_action_prob * G
-                G = first_term + second_term
+                if k == len(trajectory) - 1:
+                    # n=1 -- (case 7.15 pg 153)
+                    # this is identical to expected SARSA, for the last timestep
+                    G = reward + gamma * np.sum(next_action_probs * Q[next_state]) * (
+                        not done
+                    )
+                else:
+                    # n>=2 -- (case 7.16 pg 153)
+                    first_term = k_reward + gamma * np.sum(
+                        next_action_probs_not_taken * Q_next_state_for_actions_not_taken
+                    )
+                    second_term = gamma * next_action_prob_taken * G  # recursive
+                    G = first_term + second_term
 
             # This remains unchanged from before
             Q[state_to_update][action_to_update] = Q[state_to_update][
