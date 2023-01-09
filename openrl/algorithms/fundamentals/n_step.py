@@ -222,7 +222,87 @@ def get_action_probs(
     return np.array(probs)
 
 
-# TODO(ntsang): Maybe try importance sampling algorithm (section 7.5)
+def nstep_qlearning_importance_sampling(
+    env: gym.Env,
+    gamma: float,
+    alpha: float,
+    epsilon: float,
+    n_steps: int,
+    num_episodes: int,
+) -> np.ndarray:
+    """
+    Importance sampling per S&B Section 7.3 (p. 148)
+
+    Note: I think convergence probably takes longer since more updates are thrown out (i.e. when the IS ratio = 0)
+    """
+    num_states = env.observation_space.n
+    num_actions = env.action_space.n
+
+    # Arbitrarily initialize V and pi
+    Q = np.zeros((num_states, num_actions))
+    policy = {s: np.random.choice(num_actions) for s in range(num_states)}
+
+    for _ in range(num_episodes):
+        state = env.reset()
+        done = False
+        trajectory = []
+        while True:
+            trajectory = trajectory[1:]  # deque first element
+
+            # Gather and append n-steps (or until done)
+            while len(trajectory) < n_steps and not done:
+                action = (
+                    policy[state]
+                    if np.random.random() > epsilon
+                    else np.random.randint(num_actions)
+                )
+                next_state, reward, done, _ = env.step(action)
+
+                trajectory.append((state, action, reward, next_state, done))
+                state = next_state
+
+            if len(trajectory) == 0:
+                break
+
+            # get the first state-action in the n-step traj, which is what we want to update
+            state_to_update = trajectory[0][0]  # (s, a, r, d) tuple
+            action_to_update = trajectory[0][1]
+
+            # Do importance sampling
+            p = 1
+            for t in range(1, len(trajectory)):
+                # Notice that we don't apply IS to the initial actions, only subsequent actions
+                # That's why we start at t=1 instead of t=0!
+                s, a, r, ns, d = trajectory[t]
+                behavior_action_prob = get_action_probs(s, epsilon, Q, num_actions)[a]
+                is_greedy_action = a == np.argmax(Q[s])
+                target_policy_prob = 1.0 if is_greedy_action else 0.0
+                p *= target_policy_prob / behavior_action_prob
+
+            # get all rewards, r(t=t'), r(t=t'+1), ... r(t=t'+n-1)
+            n_rewards = np.array(trajectory)[:, 2]
+            n_rewards = computed_discounted_rewards(n_rewards, gamma)
+            # The only difference between n-step sarsa and n-step q-learning is this next line
+            target = n_rewards + gamma ** (len(trajectory) - 1) * np.max(
+                Q[next_state]
+            ) * (not done)
+
+            # Update estimated Q for state_to_update, NOT state
+            # Note that we apply IS, p, to the update
+            Q[state_to_update][action_to_update] = Q[state_to_update][
+                action_to_update
+            ] + alpha * p * (target - Q[state_to_update][action_to_update])
+
+            # extract policy - policy imporvement w.r.t to visited states
+            # this is the only difference between prediction and control
+            policy[state_to_update] = np.argmax(Q[state_to_update])
+
+        # Decay parameters
+        alpha = exponential_decay(alpha, decay_factor=0.99975, min_val=0.001)
+        epsilon = exponential_decay(epsilon, decay_factor=0.99975, min_val=0.001)
+        # print(f"alpha={alpha} --- epsilon={epsilon}")
+    return Q, policy
+
 
 def nstep_q_learning_tree_backup(
     env: gym.Env,
@@ -232,6 +312,7 @@ def nstep_q_learning_tree_backup(
     n_steps: int,
     num_episodes: int,
 ) -> np.ndarray:
+    """n-step tree backup algorithm per S&B Section 7.5 (p.152)"""
     num_states = env.observation_space.n
     num_actions = env.action_space.n
 
