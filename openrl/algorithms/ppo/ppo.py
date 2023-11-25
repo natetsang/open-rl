@@ -122,8 +122,8 @@ class PPOAgent(BaseAgent):
         masks = []
         values = []
         log_probs = []
+        state = self.envs.reset()
         for i in range(NUM_STEPS_PER_ROLLOUT):
-            state = self.envs.reset()
 
             # Pass state through actor and critic
             mu, std = self.actor_model(state)
