@@ -209,7 +209,7 @@ if __name__ == "__main__":
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
-    torch.use_deterministic_algorithms(True)
+    torch.cuda.manual_seed(42)
     torch.backends.cudnn.deterministic = True
 
     envs = gym.vector.SyncVectorEnv([make_env(ENV_NAME, SEED + i) for i in range(NUM_ENVS)])
