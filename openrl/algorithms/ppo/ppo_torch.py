@@ -1,3 +1,4 @@
+import random
 from typing import Callable, Tuple
 
 import gym
@@ -13,6 +14,7 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print(f"Use cuda: {use_cuda} -- device: {device}")
 
 # Constants
+SEED = 42
 ENV_NAME = "MountainCarContinuous-v0"
 CLIP_PARAM = 0.2
 ENTROPY_WEIGHT = 0.001
@@ -25,7 +27,7 @@ NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
 BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
 EPOCHS = 16  # num passes over entire training data
-PASS_THROUGH_BATCH = 4
+PASS_THROUGH_BATCH = 8
 THRESHOLD = 90
 
 
@@ -42,11 +44,14 @@ def compute_gae(next_value, rewards, masks, values, gamma=0.99, tau=0.95):
     return returns
 
 
-def make_env(env_name: str) -> Callable[[], gym.Env]:
+def make_env(env_name: str, seed: int) -> Callable[[], gym.Env]:
     """Given an environment name, return a function that can be called to create an environment."""
 
     def _thunk() -> gym.Env:
         env = gym.make(env_name)
+        env.seed(seed)
+        env.action_space.seed(seed)
+        env.observation_space.seed(seed)
         return env
 
     return _thunk
@@ -191,7 +196,11 @@ def train_episode():
 
 
 if __name__ == "__main__":
-    envs = gym.vector.SyncVectorEnv([make_env(ENV_NAME) for _ in range(NUM_ENVS)])
+    random.seed(SEED)
+    np.random.seed(SEED)
+    torch.manual_seed(SEED)
+
+    envs = gym.vector.SyncVectorEnv([make_env(ENV_NAME, SEED + i) for i in range(NUM_ENVS)])
     env = gym.make(ENV_NAME)  # for eval only
 
     num_inputs = envs.single_observation_space.shape[0]
