@@ -25,7 +25,7 @@ LEARNING_RATE = 3e-4
 # Learning constants
 CLIP_PARAM = 0.2
 ENTROPY_WEIGHT = 0.001
-TARGET_KL = 0.01
+TARGET_KL = 1
 
 # Other constants
 NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
@@ -68,13 +68,13 @@ class ActorCritic(nn.Module):
 
         self.actor = nn.Sequential(
             self.layer_init(nn.Linear(num_inputs, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             self.layer_init(nn.Linear(hidden_size, num_outputs)),
         )
 
         self.critic = nn.Sequential(
             self.layer_init(nn.Linear(num_inputs, hidden_size)),
-            nn.ReLU(),
+            nn.Tanh(),
             self.layer_init(nn.Linear(hidden_size, 1), std=1.0),
         )
 
@@ -193,6 +193,11 @@ def train_episode():
             actor_loss = -torch.min(surr1, surr2).mean()
             critic_loss = (return_ - value).pow(2).mean()
             loss = 0.5 * critic_loss + actor_loss - 0.001 * entropy
+
+            with torch.no_grad():
+                kl = (old_log_probs - new_log_probs).mean()
+                if kl > TARGET_KL:
+                    break
 
             # Update network
             optimizer.zero_grad()
