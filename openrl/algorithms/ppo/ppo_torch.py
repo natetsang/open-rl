@@ -25,14 +25,14 @@ LEARNING_RATE = 3e-4
 # Learning constants
 CLIP_PARAM = 0.2
 ENTROPY_WEIGHT = 0.001
-TARGET_KL = 1
+TARGET_KL = 0.015
 
 # Other constants
 NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
 BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
 EPOCHS = 16  # num passes over entire training data
-PASS_THROUGH_BATCH = 8
+NUM_ITER_PER_BATCH = 8
 THRESHOLD = 90
 
 
@@ -174,7 +174,7 @@ def train_episode():
     states, actions, _, _, _, log_probs, returns, advantages = rollout_policy(NUM_STEPS_PER_ENV)
 
     batch_size = states.size(0)
-    for _ in range(PASS_THROUGH_BATCH):
+    for _ in range(NUM_ITER_PER_BATCH):
         # Complete 1 pass-through of the Batch in increments of Minibatch size.
         for _ in range(batch_size // MINIBATCH_SIZE):
             state, action, old_log_probs, return_, advantage = sample_transitions(
@@ -194,10 +194,10 @@ def train_episode():
             critic_loss = (return_ - value).pow(2).mean()
             loss = 0.5 * critic_loss + actor_loss - 0.001 * entropy
 
-            with torch.no_grad():
-                kl = (old_log_probs - new_log_probs).mean()
-                if kl > TARGET_KL:
-                    break
+            # with torch.no_grad():
+            #     kl = ((ratio - 1) - (new_log_probs - old_log_probs)).mean()
+            #     if kl > TARGET_KL:
+            #         break
 
             # Update network
             optimizer.zero_grad()
@@ -238,4 +238,4 @@ if __name__ == "__main__":
     plt.ylabel("Avg rewards")
     plt.show()
 
-    evaluate_policy(render=True)
+    # evaluate_policy(render=True)
