@@ -13,16 +13,21 @@ use_cuda = torch.cuda.is_available()
 device = torch.device("cuda" if use_cuda else "cpu")
 print(f"Use cuda: {use_cuda} -- device: {device}")
 
-# Constants
-SEED = 42
+# Environment constants
+SEED = 1
 ENV_NAME = "MountainCarContinuous-v0"
+NUM_ENVS = 16
+
+# Network constants
+HIDDEN_SIZE = 256
+LEARNING_RATE = 3e-4
+
+# Learning constants
 CLIP_PARAM = 0.2
 ENTROPY_WEIGHT = 0.001
 TARGET_KL = 0.01
 
-NUM_ENVS = 16
-HIDDEN_SIZE = 256
-LEARNING_RATE = 3e-4
+# Other constants
 NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
 BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
@@ -117,7 +122,7 @@ def sample_transitions(mini_batch_size, states, actions, log_probs, returns, adv
     )
 
 
-def rollout_policy(num_steps: int):
+def rollout_policy(num_steps_per_env: int):
     states = []
     actions = []
     rewards = []
@@ -127,7 +132,7 @@ def rollout_policy(num_steps: int):
 
     state = envs.reset()
 
-    for _ in range(num_steps):
+    for _ in range(num_steps_per_env):
         state = torch.FloatTensor(state).to(device)
         dist, value = model(state)  # state through netwwork to get prob dist and estimated V(s)
 
@@ -187,11 +192,11 @@ def train_episode():
 
             actor_loss = -torch.min(surr1, surr2).mean()
             critic_loss = (return_ - value).pow(2).mean()
-            total_loss = actor_loss + 0.5 * critic_loss - ENTROPY_WEIGHT * entropy
+            loss = 0.5 * critic_loss + actor_loss - 0.001 * entropy
 
             # Update network
             optimizer.zero_grad()
-            total_loss.backward()
+            loss.backward()
             optimizer.step()
 
 
@@ -199,6 +204,8 @@ if __name__ == "__main__":
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
+    torch.use_deterministic_algorithms(True)
+    torch.backends.cudnn.deterministic = True
 
     envs = gym.vector.SyncVectorEnv([make_env(ENV_NAME, SEED + i) for i in range(NUM_ENVS)])
     env = gym.make(ENV_NAME)  # for eval only
