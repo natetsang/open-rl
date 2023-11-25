@@ -14,7 +14,7 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print(f"Use cuda: {use_cuda} -- device: {device}")
 
 # Environment constants
-SEED = 1
+SEED = 0
 ENV_NAME = "MountainCarContinuous-v0"
 NUM_ENVS = 16
 
@@ -31,7 +31,7 @@ TARGET_KL = 0.015
 NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
 BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
-EPOCHS = 16  # num passes over entire training data
+EPOCHS = 20  # num passes over entire training data
 NUM_ITER_PER_BATCH = 8
 THRESHOLD = 90
 
@@ -94,18 +94,18 @@ class ActorCritic(nn.Module):
 
 
 def evaluate_policy(render=False):
-    state = env.reset()
+    state = eval_env.reset()
     if render:
-        env.render()
+        eval_env.render()
     done = False
     total_reward = 0
     while not done:
         state = torch.FloatTensor(state).unsqueeze(0).to(device)
         dist, _ = model(state)
-        next_state, reward, done, _ = env.step(dist.sample().cpu().numpy()[0])
+        next_state, reward, done, _ = eval_env.step(dist.sample().cpu().numpy()[0])
         state = next_state
         if render:
-            env.render()
+            eval_env.render()
         total_reward += reward
     return total_reward
 
@@ -170,13 +170,13 @@ def rollout_policy(num_steps_per_env: int):
 
 
 def train_episode():
-    # Step 1: Rollout policy and calculate Advantages and Returns
+    # Rollout the policy
     states, actions, _, _, _, log_probs, returns, advantages = rollout_policy(NUM_STEPS_PER_ENV)
 
-    batch_size = states.size(0)
+    # We iterate over the batch multiple times
     for _ in range(NUM_ITER_PER_BATCH):
-        # Complete 1 pass-through of the Batch in increments of Minibatch size.
-        for _ in range(batch_size // MINIBATCH_SIZE):
+        # Complete 1 pass over the Batch in increments of Minibatch size.
+        for _ in range(BATCH_SIZE // MINIBATCH_SIZE):
             state, action, old_log_probs, return_, advantage = sample_transitions(
                 MINIBATCH_SIZE, states, actions, log_probs, returns, advantages
             )
@@ -206,18 +206,22 @@ def train_episode():
 
 
 if __name__ == "__main__":
+    # Set random seeds
     random.seed(SEED)
     np.random.seed(SEED)
     torch.manual_seed(SEED)
-    torch.cuda.manual_seed(42)
+    torch.cuda.manual_seed(SEED)
     torch.backends.cudnn.deterministic = True
 
+    # Create environments
     envs = gym.vector.SyncVectorEnv([make_env(ENV_NAME, SEED + i) for i in range(NUM_ENVS)])
-    env = gym.make(ENV_NAME)  # for eval only
+    eval_env = gym.make(ENV_NAME)  # for eval only
+    eval_env.seed(SEED)
 
     num_inputs = envs.single_observation_space.shape[0]
     num_outputs = envs.single_action_space.shape[0]
 
+    # Create model
     model = ActorCritic(num_inputs, num_outputs, HIDDEN_SIZE).to(device)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
@@ -226,6 +230,7 @@ if __name__ == "__main__":
     for e in range(EPOCHS):
         train_episode()
 
+        # Evaluate agent
         eval_rews = np.mean([evaluate_policy() for _ in range(10)])
         eval_rewards.append(eval_rews)
         print(f"Epoch: {e} | Reward: {round(eval_rews, 2)}")
