@@ -20,7 +20,7 @@ NUM_ENVS = 16
 
 # Network constants
 HIDDEN_SIZE = 256
-LEARNING_RATE = 3e-4
+LEARNING_RATE = 5e-4
 
 # Learning constants
 CLIP_PARAM = 0.2
