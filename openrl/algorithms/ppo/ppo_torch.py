@@ -21,9 +21,10 @@ TARGET_KL = 0.01
 NUM_ENVS = 16
 HIDDEN_SIZE = 256
 LEARNING_RATE = 3e-4
-NUM_ROLLOUT_STEPS_PER_EPISODE = 1024  # num of transitions we sample for each training iter
+NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
+BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
-TRAINING_EPOCHS = 16  # num passes over entire training data
+EPOCHS = 16  # num passes over entire training data
 PASS_THROUGH_BATCH = 4
 THRESHOLD = 90
 
@@ -160,34 +161,32 @@ def rollout_policy(num_steps: int):
 
 def train_episode():
     # Step 1: Rollout policy and calculate Advantages and Returns
-    states, actions, _, _, _, log_probs, returns, advantages = rollout_policy(NUM_ROLLOUT_STEPS_PER_EPISODE)
+    states, actions, _, _, _, log_probs, returns, advantages = rollout_policy(NUM_STEPS_PER_ENV)
 
-    # Complete 1 pass-through of the Batch, in increments of minibatch size.
     batch_size = states.size(0)
     for _ in range(PASS_THROUGH_BATCH):
+        # Complete 1 pass-through of the Batch in increments of Minibatch size.
         for _ in range(batch_size // MINIBATCH_SIZE):
             state, action, old_log_probs, return_, advantage = sample_transitions(
                 MINIBATCH_SIZE, states, actions, log_probs, returns, advantages
             )
+
             dist, value = model(state)
+
+            # Calculate loss
             entropy = dist.entropy().mean()  # for inciting exploration
             new_log_probs = dist.log_prob(action)  # new log_probs of originally selected actions
-
-            # PPO stuff!
             ratio = (new_log_probs - old_log_probs).exp()
             surr1 = ratio * advantage
             surr2 = torch.clamp(ratio, 1.0 - CLIP_PARAM, 1.0 + CLIP_PARAM) * advantage
 
-            # Clip loss
             actor_loss = -torch.min(surr1, surr2).mean()
-            # MSE loss between GAE returns and estimated value of the state
             critic_loss = (return_ - value).pow(2).mean()
-            # discounted critic loss plus CLIP LOSS minus scaled entroy
-            loss = 0.5 * critic_loss + actor_loss - ENTROPY_WEIGHT * entropy
+            total_loss = actor_loss + 0.5 * critic_loss - ENTROPY_WEIGHT * entropy
 
             # Update network
             optimizer.zero_grad()
-            loss.backward()
+            total_loss.backward()
             optimizer.step()
 
 
@@ -203,12 +202,12 @@ if __name__ == "__main__":
 
     # Run training
     eval_rewards = []
-    for e in range(TRAINING_EPOCHS):
+    for e in range(EPOCHS):
         train_episode()
 
         eval_rews = np.mean([evaluate_policy() for _ in range(10)])
         eval_rewards.append(eval_rews)
-        print(f"Epoch: {e} | Reward: {eval_rews}")
+        print(f"Epoch: {e} | Reward: {round(eval_rews, 2)}")
         if eval_rews >= THRESHOLD:
             break
 
@@ -217,3 +216,5 @@ if __name__ == "__main__":
     plt.xlabel("Epoch")
     plt.ylabel("Avg rewards")
     plt.show()
+
+    evaluate_policy(render=True)
