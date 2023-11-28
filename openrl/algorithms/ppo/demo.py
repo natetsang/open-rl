@@ -26,12 +26,14 @@ LEARNING_RATE = 5e-4
 CLIP_PARAM = 0.2  # epsilon
 ENTROPY_WEIGHT = 0.001
 
-# Other constants
+# Batch info
 NUM_STEPS_PER_ENV = 1024  # num of transitions T we sample for each training iter
 BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
 MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
-EPOCHS = 20  # num of rounds
 NUM_ITER_PER_BATCH = 8  # number of passes through the batch
+
+# Other constants
+EPOCHS = 20  # num of training rounds
 THRESHOLD = 90
 
 
