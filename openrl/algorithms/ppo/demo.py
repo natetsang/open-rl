@@ -23,7 +23,7 @@ HIDDEN_SIZE = 256
 LEARNING_RATE = 5e-4
 
 # Learning constants
-CLIP_PARAM = 0.2
+CLIP_PARAM = 0.2  # epsilon
 ENTROPY_WEIGHT = 0.001
 
 # Other constants
