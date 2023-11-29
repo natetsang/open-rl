@@ -16,26 +16,25 @@ print(f"Use cuda: {use_cuda} -- device: {device}")
 # Environment constants
 SEED = 0
 ENV_NAME = "MountainCarContinuous-v0"
-NUM_ENVS = 16  # number of parallel environments N
+NUM_ENVS = 16
 
 # Network constants
 HIDDEN_SIZE = 256
 LEARNING_RATE = 5e-4
 
 # Learning constants
-CLIP_PARAM = 0.2  # epsilon
+CLIP_PARAM = 0.2
 ENTROPY_WEIGHT = 0.001
-
-# Batch info
-NUM_STEPS_PER_ENV = 1024  # num of transitions T we sample for each training iter
-BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
-MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
-NUM_ITER_PER_BATCH = 8  # number of passes through the batch
-NUM_GRAD_STEPS_PER_BATCH = NUM_ITER_PER_BATCH * (BATCH_SIZE // MINIBATCH_SIZE)  # M
+TARGET_KL = 0.015
 
 # Other constants
-EPOCHS = 20  # num of training rounds
+NUM_STEPS_PER_ENV = 1024  # num of transitions we sample for each training iter
+BATCH_SIZE = NUM_ENVS * NUM_STEPS_PER_ENV
+MINIBATCH_SIZE = 16  # num of samples randomly selected from stored data
+EPOCHS = 20  # num passes over entire training data
+NUM_ITER_PER_BATCH = 8
 THRESHOLD = 90
+NUM_GRAD_STEPS_PER_BATCH = NUM_ITER_PER_BATCH * (BATCH_SIZE // MINIBATCH_SIZE)
 
 
 def compute_gae(next_value, rewards, masks, values, gamma=0.99, tau=0.95):
@@ -65,7 +64,34 @@ def make_env(env_name: str, seed: int) -> Callable[[], gym.Env]:
 
 
 class ActorCritic(nn.Module):
-    pass
+    def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
+        super(ActorCritic, self).__init__()
+
+        self.actor = nn.Sequential(
+            self.layer_init(nn.Linear(num_inputs, hidden_size)),
+            nn.Tanh(),
+            self.layer_init(nn.Linear(hidden_size, num_outputs)),
+        )
+
+        self.critic = nn.Sequential(
+            self.layer_init(nn.Linear(num_inputs, hidden_size)),
+            nn.Tanh(),
+            self.layer_init(nn.Linear(hidden_size, 1), std=1.0),
+        )
+
+        self.log_std = nn.Parameter(torch.ones(1, num_outputs) * std)
+
+    def layer_init(self, layer, std=np.sqrt(2), bias_const=0.0):
+        nn.init.orthogonal_(layer.weight, std)
+        nn.init.constant_(layer.bias, bias_const)
+        return layer
+
+    def forward(self, x):
+        value = self.critic(x)
+        mu = self.actor(x)
+        std = self.log_std.exp().expand_as(mu)  # make log_std the same shape as mu
+        dist = distributions.Normal(mu, std)
+        return dist, value
 
 
 def evaluate_policy(render=False):
@@ -86,45 +112,96 @@ def evaluate_policy(render=False):
 
 
 def sample_transitions(mini_batch_size, states, actions, log_probs, returns, advantage) -> Tuple:
-    # gather random indicies
+    rand_ids = np.random.randint(0, len(states), mini_batch_size)
 
-    # return transitions from those indices
-    pass
+    return (
+        states[rand_ids, :],
+        actions[rand_ids, :],
+        log_probs[rand_ids, :],
+        returns[rand_ids, :],
+        advantage[rand_ids, :],
+    )
 
 
 def rollout_policy(num_steps_per_env: int):
-    # initialize all the data structures you need
+    states = []
+    actions = []
+    rewards = []
+    masks = []
+    values = []
+    log_probs = []
 
-    # Rollout policy for T timesteps
+    state = envs.reset()
+
     for _ in range(num_steps_per_env):
+        state = torch.FloatTensor(state).to(device)
+        dist, value = model(state)  # state through netwwork to get prob dist and estimated V(s)
+
+        action = dist.sample()
+        next_state, reward, done, _ = envs.step(action.cpu().numpy())
+        log_prob = dist.log_prob(action)
+
         # Store log_probs, values, rewards, done_masks, states, actions.
-
         # Each list num_steps long, each step num_envs wide.
+        states.append(state)
+        actions.append(action)
+        rewards.append(torch.FloatTensor(reward).unsqueeze(1).to(device))
+        masks.append(torch.FloatTensor(1 - done).unsqueeze(1).to(device))
+        values.append(value)
+        log_probs.append(log_prob)
 
-        pass
+        state = next_state
 
     # After completing the rollout, calculate the returns
     # to calc returns correctly, run final next_state through network to get value
-
-    # Run GAE. Loop backwards from recent experience.
+    next_state = torch.FloatTensor(next_state).to(device)
+    _, next_value = model(next_state)
+    # run GAE. Loop backwards from recent experience.
+    returns = compute_gae(next_value, rewards, masks, values)
 
     # concatanate each list inside a torch tensor.
     # list that was num_steps long, num_envs wide becomes num_steps*num_envs long
-
-    pass
+    returns = torch.cat(returns).detach()
+    log_probs = torch.cat(log_probs).detach()
+    values = torch.cat(values).detach()
+    states = torch.cat(states)
+    actions = torch.cat(actions)
+    advantages = returns - values
+    return states, actions, rewards, masks, values, log_probs, returns, advantages
 
 
 def train_episode():
     # Rollout the policy
+    states, actions, _, _, _, log_probs, returns, advantages = rollout_policy(NUM_STEPS_PER_ENV)
 
     # We iterate over the batch multiple times
     for _ in range(NUM_GRAD_STEPS_PER_BATCH):
-        # sample transitions
+        state, action, old_log_probs, return_, advantage = sample_transitions(
+            MINIBATCH_SIZE, states, actions, log_probs, returns, advantages
+        )
+
+        dist, value = model(state)
 
         # Calculate loss
+        entropy = dist.entropy().mean()  # for inciting exploration
+        new_log_probs = dist.log_prob(action)  # new log_probs of originally selected actions
+        ratio = (new_log_probs - old_log_probs).exp()
+        surr1 = ratio * advantage
+        surr2 = torch.clamp(ratio, 1.0 - CLIP_PARAM, 1.0 + CLIP_PARAM) * advantage
+
+        actor_loss = -torch.min(surr1, surr2).mean()
+        critic_loss = (return_ - value).pow(2).mean()
+        loss = 0.5 * critic_loss + actor_loss - 0.001 * entropy
+
+        # with torch.no_grad():
+        #     kl = ((ratio - 1) - (new_log_probs - old_log_probs)).mean()
+        #     if kl > TARGET_KL:
+        #         break
 
         # Update network
-        pass
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
 
 if __name__ == "__main__":
