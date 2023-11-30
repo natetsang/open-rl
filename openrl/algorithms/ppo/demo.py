@@ -64,10 +64,6 @@ def make_env(env_name: str, seed: int) -> Callable[[], gym.Env]:
     return _thunk
 
 
-class ActorCritic(nn.Module):
-    pass
-
-
 def evaluate_policy(render=False):
     state = eval_env.reset()
     if render:
@@ -83,6 +79,10 @@ def evaluate_policy(render=False):
             eval_env.render()
         total_reward += reward
     return total_reward
+
+
+class ActorCritic(nn.Module):
+    pass
 
 
 def sample_transitions(mini_batch_size, states, actions, log_probs, returns, advantage) -> Tuple:

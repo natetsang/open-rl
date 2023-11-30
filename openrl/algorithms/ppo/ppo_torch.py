@@ -62,6 +62,23 @@ def make_env(env_name: str, seed: int) -> Callable[[], gym.Env]:
     return _thunk
 
 
+def evaluate_policy(render=False):
+    state = eval_env.reset()
+    if render:
+        eval_env.render()
+    done = False
+    total_reward = 0
+    while not done:
+        state = torch.FloatTensor(state).unsqueeze(0).to(device)
+        dist, _ = model(state)
+        next_state, reward, done, _ = eval_env.step(dist.sample().cpu().numpy()[0])
+        state = next_state
+        if render:
+            eval_env.render()
+        total_reward += reward
+    return total_reward
+
+
 class ActorCritic(nn.Module):
     def __init__(self, num_inputs, num_outputs, hidden_size, std=0.0):
         super(ActorCritic, self).__init__()
@@ -91,23 +108,6 @@ class ActorCritic(nn.Module):
         std = self.log_std.exp().expand_as(mu)  # make log_std the same shape as mu
         dist = distributions.Normal(mu, std)
         return dist, value
-
-
-def evaluate_policy(render=False):
-    state = eval_env.reset()
-    if render:
-        eval_env.render()
-    done = False
-    total_reward = 0
-    while not done:
-        state = torch.FloatTensor(state).unsqueeze(0).to(device)
-        dist, _ = model(state)
-        next_state, reward, done, _ = eval_env.step(dist.sample().cpu().numpy()[0])
-        state = next_state
-        if render:
-            eval_env.render()
-        total_reward += reward
-    return total_reward
 
 
 def sample_transitions(mini_batch_size, states, actions, log_probs, returns, advantage) -> Tuple:
